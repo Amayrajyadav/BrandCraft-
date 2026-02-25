@@ -5,6 +5,7 @@ Backend: FastAPI + Groq LLaMA-3.3-70B + IBM Granite 3.3 + Stable Diffusion XL
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Optional, List
 import os, base64, json, httpx
@@ -163,15 +164,8 @@ def safe_json(text: str, fallback):
 # ─────────────────────────────────────────────────────────────────────────────
 
 @app.get("/")
-def root():
-    return {
-        "project": "BrandCraft",
-        "tagline": "Generative AI–Powered Branding Automation System",
-        "version": "2.0.0",
-        "status": "running",
-        "docs": "/docs"
-    }
-
+async def serve_frontend():
+    return FileResponse("index.html")
 @app.get("/health")
 def health():
     return {"status": "ok", "models": ["groq/llama-3.3-70b", "ibm-granite/3.3-2b", "sdxl"]}
