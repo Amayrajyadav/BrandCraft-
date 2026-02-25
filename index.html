@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrandCraft — Generative AI Branding Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ─── TOKENS ─────────────────────────────────────────────────────────────── */
+:root {
+  --cream:    #f5f0e8;
+  --warm:     #ede8dc;
+  --paper:    #faf8f4;
+  --ink:      #1a1612;
+  --ink-mid:  #4a4238;
+  --ink-dim:  #9a9080;
+  --rust:     #c8522a;
+  --rust-lt:  #e8755a;
+  --gold:     #b89a3c;
+  --sage:     #3d6b4f;
+  --border:   #d8d0c0;
+  --serif:    'DM Serif Display', Georgia, serif;
+  --sans:     'DM Sans', sans-serif;
+  --mono:     'JetBrains Mono', monospace;
+  --shadow:   0 2px 20px rgba(26,22,18,0.08);
+  --shadow-lg:0 8px 40px rgba(26,22,18,0.14);
+}
+
+/* ─── RESET ──────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Subtle grain overlay */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.6;
+}
+
+/* ─── HEADER ─────────────────────────────────────────────────────────────── */
+header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(245,240,232,0.95);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2rem;
+}
+
+.logo {
+  display: flex; align-items: center; gap: 0.75rem;
+  text-decoration: none; color: inherit;
+}
+
+.logo-mark {
+  width: 32px; height: 32px;
+  background: var(--ink);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cream);
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  font-style: italic;
+  letter-spacing: -0.05em;
+}
+
+.logo-text {
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  letter-spacing: -0.01em;
+}
+
+.logo-text span { color: var(--rust); font-style: italic; }
+
+.header-right {
+  display: flex; align-items: center; gap: 1rem;
+}
+
+.powered-by {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  border: 1px solid var(--border);
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+/* ─── LAYOUT ─────────────────────────────────────────────────────────────── */
+.app-shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: calc(100vh - 56px);
+}
+
+/* ─── SIDEBAR ─────────────────────────────────────────────────────────────── */
+aside {
+  background: var(--cream);
+  border-right: 1px solid var(--border);
+  padding: 1.5rem 0;
+  position: sticky; top: 56px;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+}
+
+.nav-group { margin-bottom: 1.5rem; }
+
+.nav-group-label {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--ink-dim);
+  padding: 0 1.25rem;
+  margin-bottom: 0.4rem;
+  display: block;
+}
+
+.nav-link {
+  display: flex; align-items: center; gap: 0.65rem;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ink-mid);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+  user-select: none;
+  border-radius: 0 4px 4px 0;
+}
+
+.nav-link:hover { color: var(--ink); background: var(--warm); }
+
+.nav-link.active {
+  color: var(--rust);
+  background: rgba(200,82,42,0.06);
+  border-left-color: var(--rust);
+  font-weight: 600;
+}
+
+.nav-icon { width: 18px; text-align: center; font-size: 0.9rem; }
+
+/* ─── MAIN ───────────────────────────────────────────────────────────────── */
+main { padding: 2.5rem 3rem; overflow-y: auto; }
+
+.panel { display: none; }
+.panel.active {
+  display: block;
+  animation: panelIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── API KEYS STRIP ─────────────────────────────────────────────────────── */
+.keys-strip {
+  display: flex; align-items: center; gap: 1rem;
+  background: var(--warm);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.85rem 1.25rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.keys-strip .key-field {
+  display: flex; align-items: center; gap: 0.5rem; flex: 1; min-width: 200px;
+}
+
+.key-label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--rust);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.key-input {
+  flex: 1;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0.4rem 0.7rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--ink);
+  outline: none;
+}
+
+.key-input:focus { border-color: var(--rust); }
+
+.keys-note {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--ink-dim);
+  white-space: nowrap;
+}
+
+/* ─── PAGE HEADER ────────────────────────────────────────────────────────── */
+.page-hd {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.page-hd-left { max-width: 60%; }
+
+.page-eyebrow {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--rust);
+  margin-bottom: 0.4rem;
+}
+
+.page-title {
+  font-family: var(--serif);
+  font-size: 2rem;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.page-title em { color: var(--rust); font-style: italic; }
+
+.page-sub {
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--ink-dim);
+  line-height: 1.5;
+}
+
+.model-pill {
+  display: flex; align-items: center; gap: 0.4rem;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.pill-groq  { color: var(--gold);   border-color: rgba(184,154,60,0.4);  background: rgba(184,154,60,0.06); }
+.pill-ibm   { color: var(--sage);   border-color: rgba(61,107,79,0.4);   background: rgba(61,107,79,0.06); }
+.pill-sdxl  { color: #7b5ea7;       border-color: rgba(123,94,167,0.4);  background: rgba(123,94,167,0.06); }
+
+/* ─── FORM ───────────────────────────────────────────────────────────────── */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+.form-grid.cols-1 { grid-template-columns: 1fr; }
+.form-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+.field { display: flex; flex-direction: column; gap: 0.4rem; }
+.field.full { grid-column: 1 / -1; }
+
+label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-mid);
+}
+
+input[type="text"],
+input[type="password"],
+textarea,
+select {
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 0.65rem 0.9rem;
+  color: var(--ink);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--rust);
+  box-shadow: 0 0 0 3px rgba(200,82,42,0.1);
+}
+
+textarea { resize: vertical; min-height: 110px; line-height: 1.6; }
+
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239a9080'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.9rem center;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+
+/* ─── BUTTONS ─────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: var(--sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.7rem 1.6rem;
+  border-radius: 7px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  letter-spacing: 0.01em;
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: var(--cream);
+}
+
+.btn-primary:hover {
+  background: var(--rust);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(200,82,42,0.25);
+}
+
+.btn-primary:active  { transform: translateY(0); }
+.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--ink-mid);
+}
+
+.btn-outline:hover { border-color: var(--ink); color: var(--ink); }
+
+/* ─── LOADING ─────────────────────────────────────────────────────────────── */
+.loading-row {
+  display: none; align-items: center; gap: 0.75rem;
+  margin-top: 1rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--ink-dim);
+}
+
+.loading-row.show { display: flex; }
+
+.loading-dots { display: flex; gap: 4px; }
+
+.dot {
+  width: 5px; height: 5px;
+  background: var(--rust);
+  border-radius: 50%;
+  animation: dotBounce 1.2s ease infinite;
+}
+
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dotBounce {
+  0%, 100% { opacity: 0.25; transform: translateY(0); }
+  50%       { opacity: 1;    transform: translateY(-4px); }
+}
+
+/* ─── RESULT CARD ─────────────────────────────────────────────────────────── */
+.result-card {
+  display: none;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.75rem;
+  margin-top: 1.75rem;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.result-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--rust), var(--gold), var(--sage));
+}
+
+.result-card.show { display: block; animation: panelIn 0.3s ease; }
+
+.result-label {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-dim);
+  margin-bottom: 1.25rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+
+.result-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ─── NAME CARDS GRID ─────────────────────────────────────────────────────── */
+.names-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  gap: 0.75rem;
+}
+
+.name-card {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.name-card:hover {
+  border-color: var(--rust);
+  box-shadow: 0 4px 16px rgba(200,82,42,0.12);
+  transform: translateY(-2px);
+}
+
+.name-card h3 {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  color: var(--rust);
+  margin-bottom: 0.3rem;
+}
+
+.name-card p { font-size: 0.75rem; color: var(--ink-dim); line-height: 1.4; }
+
+.cat-badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: var(--warm);
+  color: var(--ink-mid);
+  margin-top: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.dom-good { background: rgba(61,107,79,0.1); color: var(--sage); }
+.dom-check { background: rgba(200,82,42,0.08); color: var(--rust); }
+
+/* ─── TAGLINE CARDS ─────────────────────────────────────────────────────────*/
+.tagline-card {
+  border-left: 3px solid var(--rust);
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.75rem;
+  background: var(--paper);
+  border-radius: 0 8px 8px 0;
+  transition: background 0.15s;
+}
+
+.tagline-card:hover { background: var(--warm); }
+
+.tagline-quote {
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  font-style: italic;
+  color: var(--ink);
+  margin-bottom: 0.5rem;
+}
+
+.tagline-meta { display: flex; gap: 1rem; }
+.tagline-meta span {
+  font-family: var(--mono); font-size: 0.62rem;
+  color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.06em;
+}
+
+.tagline-hook {
+  font-size: 0.78rem;
+  color: var(--ink-mid);
+  margin-top: 0.35rem;
+  font-style: italic;
+}
+
+/* ─── LOGO PANEL ─────────────────────────────────────────────────────────── */
+.logo-output {
+  display: flex; gap: 2rem; align-items: flex-start;
+}
+
+.logo-frame {
+  width: 280px; height: 280px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.logo-frame img { width: 100%; height: 100%; object-fit: contain; }
+
+.logo-placeholder {
+  text-align: center;
+  color: var(--ink-dim);
+  font-family: var(--mono);
+  font-size: 0.7rem;
+}
+
+.logo-placeholder .lp-icon { font-size: 2rem; display: block; margin-bottom: 0.5rem; }
+
+.logo-info { flex: 1; }
+
+.logo-prompt-used {
+  font-size: 0.78rem;
+  color: var(--ink-dim);
+  line-height: 1.6;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  font-family: var(--mono);
+}
+
+/* ─── BRAND STORY ─────────────────────────────────────────────────────────── */
+.story-block { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+.story-block:last-child { border-bottom: none; margin-bottom: 0; }
+
+.story-block-label {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--rust);
+  margin-bottom: 0.5rem;
+}
+
+.story-block p, .story-block .story-text {
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: var(--ink);
+}
+
+.value-pill {
+  display: inline-block;
+  background: var(--warm);
+  border: 1px solid var(--border);
+  color: var(--ink-mid);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin: 0.2rem;
+}
+
+.elevator-pitch {
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  font-style: italic;
+  color: var(--rust);
+  line-height: 1.6;
+  border-left: 3px solid var(--rust);
+  padding-left: 1rem;
+}
+
+/* ─── PRODUCT DESC TABS ─────────────────────────────────────────────────────*/
+.tab-bar { display: flex; gap: 0.35rem; margin-bottom: 1.25rem; }
+
+.tab-btn {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.4rem 1rem;
+  border-radius: 5px;
+  background: var(--warm);
+  border: 1px solid var(--border);
+  color: var(--ink-mid);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tab-btn.active { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+.body-text { font-size: 0.9rem; line-height: 1.85; color: var(--ink); }
+
+.bullet-list { list-style: none; }
+.bullet-list li {
+  display: flex; gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.875rem;
+}
+
+.bullet-list li:last-child { border-bottom: none; }
+
+.bullet-list li::before {
+  content: '→';
+  color: var(--rust);
+  font-family: var(--mono);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ─── SOCIAL POSTS ─────────────────────────────────────────────────────────── */
+.post-card {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin-bottom: 0.85rem;
+}
+
+.post-num {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.6rem;
+}
+
+.post-body {
+  font-size: 0.9rem;
+  line-height: 1.75;
+  white-space: pre-line;
+  margin-bottom: 0.85rem;
+}
+
+.hashtag-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.6rem; }
+
+.hashtag {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--sage);
+  background: rgba(61,107,79,0.08);
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+
+.post-tip {
+  font-size: 0.75rem;
+  color: var(--ink-dim);
+  font-style: italic;
+  border-top: 1px solid var(--border);
+  padding-top: 0.6rem;
+  margin-top: 0.3rem;
+}
+
+/* ─── EMAIL ─────────────────────────────────────────────────────────────────── */
+.email-preview-card {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.email-header {
+  background: var(--warm);
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.email-subject-line {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  color: var(--ink);
+  margin-bottom: 0.2rem;
+}
+
+.email-preview-text {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--ink-dim);
+}
+
+.email-body-area {
+  padding: 1.5rem 1.25rem;
+  font-size: 0.875rem;
+  line-height: 1.85;
+  white-space: pre-line;
+}
+
+.email-cta-area {
+  padding: 0 1.25rem 1.25rem;
+}
+
+.email-cta-btn {
+  display: inline-block;
+  background: var(--rust);
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.65rem 1.5rem;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.email-ps {
+  font-size: 0.8rem;
+  color: var(--ink-dim);
+  font-style: italic;
+  border-top: 1px solid var(--border);
+  padding: 0.85rem 1.25rem;
+}
+
+/* ─── SENTIMENT ───────────────────────────────────────────────────────────── */
+.sentiment-row { display: grid; grid-template-columns: 100px 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+
+.sentiment-dial {
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--paper);
+}
+
+.dial-score { font-family: var(--serif); font-size: 1.6rem; line-height: 1; }
+.dial-label { font-family: var(--mono); font-size: 0.58rem; text-transform: uppercase; color: var(--ink-dim); }
+
+.sentiment-positive .sentiment-dial { border-color: var(--sage); background: rgba(61,107,79,0.06); }
+.sentiment-negative .sentiment-dial { border-color: var(--rust); background: rgba(200,82,42,0.06); }
+.sentiment-neutral  .sentiment-dial { border-color: var(--gold); background: rgba(184,154,60,0.06); }
+
+.sentiment-word { font-family: var(--serif); font-size: 1.5rem; font-style: italic; }
+.sentiment-positive .sentiment-word { color: var(--sage); }
+.sentiment-negative .sentiment-word { color: var(--rust); }
+.sentiment-neutral  .sentiment-word { color: var(--gold); }
+
+.sentiment-tone-label { font-size: 0.8rem; color: var(--ink-dim); margin-top: 0.25rem; }
+
+.emotion-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin: 1rem 0; }
+
+.emotion-item { }
+.emotion-name { font-family: var(--mono); font-size: 0.62rem; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 0.3rem; }
+
+.emotion-track {
+  height: 6px; background: var(--warm); border-radius: 3px; overflow: hidden;
+}
+
+.emotion-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, var(--rust), var(--gold));
+  transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.analysis-block {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.analysis-block-label {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--rust);
+  margin-bottom: 0.4rem;
+}
+
+.analysis-block p { font-size: 0.85rem; line-height: 1.65; color: var(--ink-mid); }
+
+.revised-text {
+  font-family: var(--serif);
+  font-size: 0.95rem;
+  font-style: italic;
+  color: var(--ink);
+  border-left: 3px solid var(--sage);
+  padding-left: 1rem;
+  line-height: 1.6;
+}
+
+/* ─── SUMMARY ─────────────────────────────────────────────────────────────── */
+.summary-text { font-size: 0.95rem; line-height: 1.9; color: var(--ink); margin-bottom: 1.25rem; }
+
+.key-point-item {
+  display: flex; gap: 0.75rem; align-items: flex-start;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.875rem;
+}
+
+.key-point-item:last-child { border-bottom: none; }
+
+.key-point-item::before {
+  content: '✦';
+  color: var(--rust);
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  margin-top: 3px;
+}
+
+.word-stats {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--ink-dim);
+  margin-top: 1rem;
+  display: flex; gap: 1.5rem;
+}
+
+/* ─── CHAT ────────────────────────────────────────────────────────────────── */
+.chat-shell {
+  display: flex; flex-direction: column;
+  height: calc(100vh - 220px);
+  min-height: 500px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.chat-top {
+  background: var(--cream);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 1.5rem;
+  display: flex; align-items: center; gap: 0.85rem;
+}
+
+.chat-avatar {
+  width: 36px; height: 36px;
+  background: var(--ink);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.chat-agent-name { font-weight: 600; font-size: 0.9rem; }
+.chat-status { font-family: var(--mono); font-size: 0.62rem; color: var(--sage); }
+.chat-status::before { content: '●'; margin-right: 4px; animation: pulse 2s ease infinite; }
+
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  display: flex; flex-direction: column; gap: 1.1rem;
+}
+
+.msg { max-width: 72%; animation: panelIn 0.2s ease; }
+.msg.user { align-self: flex-end; }
+.msg.ai   { align-self: flex-start; }
+
+.msg-bubble {
+  padding: 0.85rem 1.1rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  line-height: 1.65;
+}
+
+.msg.user .msg-bubble {
+  background: var(--ink);
+  color: var(--cream);
+  border-radius: 12px 12px 2px 12px;
+  font-weight: 400;
+}
+
+.msg.ai .msg-bubble {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 2px 12px 12px 12px;
+  color: var(--ink);
+}
+
+.msg-time {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  color: var(--ink-dim);
+  margin-top: 0.3rem;
+  padding: 0 0.3rem;
+}
+
+.chat-foot {
+  border-top: 1px solid var(--border);
+  padding: 0.85rem 1.25rem;
+  background: var(--cream);
+  display: flex; gap: 0.75rem; align-items: flex-end;
+}
+
+.chat-foot textarea {
+  flex: 1; min-height: 42px; max-height: 130px;
+  resize: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  padding: 0.6rem 0.9rem;
+  background: white;
+}
+
+/* ─── COPY BUTTON ─────────────────────────────────────────────────────────── */
+.copy-floater {
+  position: absolute;
+  top: 1.25rem; right: 1.5rem;
+  background: var(--warm);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 3px 10px;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-dim);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.copy-floater:hover { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+
+/* ─── SCROLLBAR ─────────────────────────────────────────────────────────────*/
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-mark">B</div>
+    <div class="logo-text">Brand<span>Craft</span></div>
+  </div>
+  <div class="header-right">
+    <span class="powered-by">Generative AI · Branding Automation</span>
+  </div>
+</header>
+
+<div class="app-shell">
+
+  <!-- SIDEBAR -->
+  <aside>
+    <div class="nav-group">
+      <span class="nav-group-label">Brand Identity</span>
+      <div class="nav-link active" onclick="go('brand-names', this)">
+        <span class="nav-icon">✦</span> Brand Names
+      </div>
+      <div class="nav-link" onclick="go('taglines', this)">
+        <span class="nav-icon">◈</span> Taglines
+      </div>
+      <div class="nav-link" onclick="go('logo', this)">
+        <span class="nav-icon">◉</span> Logo Generator
+      </div>
+      <div class="nav-link" onclick="go('brand-story', this)">
+        <span class="nav-icon">◎</span> Brand Story
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <span class="nav-group-label">Content Creation</span>
+      <div class="nav-link" onclick="go('product', this)">
+        <span class="nav-icon">▨</span> Product Copy
+      </div>
+      <div class="nav-link" onclick="go('social', this)">
+        <span class="nav-icon">◆</span> Social Posts
+      </div>
+      <div class="nav-link" onclick="go('email', this)">
+        <span class="nav-icon">▲</span> Email Writer
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <span class="nav-group-label">Analytics</span>
+      <div class="nav-link" onclick="go('sentiment', this)">
+        <span class="nav-icon">◐</span> Sentiment Analysis
+      </div>
+      <div class="nav-link" onclick="go('summarize', this)">
+        <span class="nav-icon">≡</span> Summarizer
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <span class="nav-group-label">AI Consultant</span>
+      <div class="nav-link" onclick="go('chat', this)">
+        <span class="nav-icon">⬡</span> BrandCraft AI
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+
+    
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- BRAND NAMES -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="panel active" id="p-brand-names">
+      <div class="page-hd">
+        <div class="page-hd-left">
+          <div class="page-eyebrow">Brand Identity · Step 1</div>
+          <div class="page-title">Brand <em>Name</em> Generator</div>
+          <div class="page-sub">AI-crafted names with meaning, style, and domain considerations</div>
+        </div>
+        <span class="model-pill pill-groq">⚡ Groq · LLaMA 3.3-70B</span>
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Industry / Niche</label>
+          <input type="text" id="bn-industry" placeholder="e.g. SaaS, Bakery, Fintech, Healthcare">
+        </div>
+        <div class="field">
+          <label>Keywords / Themes</label>
+          <input type="text" id="bn-keywords" placeholder="e.g. speed, trust, innovation, nature">
+        </div>
+        <div class="field">
+          <label>Naming Style</label>
+          <select id="bn-style">
+            <option>modern</option>
+            <option>playful</option>
+            <option>luxurious</option>
+            <option>technical</option>
+            <option>minimal</option>
+            <option>bold</option>
+            <option>classic</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Number of Names</label>
+          <select id="bn-count">
+            <option value="5">5 names</option>
+            <option value="10" selected>10 names</option>
+            <option value="15">15 names</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="bn-btn" onclick="genBrandNames()">✦ Generate Brand Names</button>
+      <div class="loading-row" id="l-bn">
+        <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        Generating with LLaMA 3.3-70B...
+      </div>
+
+      <div class="result-card" id="r-bn">
+        <div class="result-label">Generated Brand Names</div>
+        <div class="names-grid" id="names-out"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- TAGLINES -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="panel" id="p-taglines">
+      <div class="page-hd">
+        <div class="page-hd-left">
+          <div class="page-eyebrow">Brand Identity · Step 2</div>
+          <div class="page-title">Tagline <em>Generator</em></div>
+          <div class="page-sub">5 memorable slogans with emotional analysis</div>
+        </div>
+        <span class="model-pill pill-groq">⚡ Groq · LLaMA 3.3-70B</span>
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Brand Name</label>
+          <input type="text" id="tl-brand" placeholder="e.g. BrandCraft">
+        </div>
+        <div class="field">
+          <label>Industry</label>
+          <input type="text" id="tl-industry" placeholder="e.g. AI Software">
+        </div>
+        <div class="field">
+          <label>Tone</label>
+          <select id="tl-tone">
+            <option>professional</option>
+            <option>witty</option>
+            <option>inspirational</option>
+            <option>bold</option>
+            <option>empathetic</option>
+            <option>playful</option>
+            <option>luxurious</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="genTaglines()">◈ Generate Taglines</button>
+      <div class="loading-row" id="l-tl">
+        <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        Crafting taglines...
+      </div>
+
+      <div class="result-card" id="r-tl">
+        <div class="result-label">Tagline Options</div>
+        <div id="taglines-out"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- LOGO -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="panel" id="p-logo">
+      <div class="page-hd">
+        <div class="page-hd-left">
+          <div class="page-eyebrow">Visual Identity · Step 3</div>
+          <div class="page-title">Logo <em>Generator</em></div>
+          <div class="page-sub">AI-generated logos via Stable Diffusion XL — allow 30–90 seconds</div>
+        </div>
+        <span class="model-pill pill-sdxl">🎨 SDXL · HuggingFace</span>
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Brand Name</label>
+          <input type="text" id="lg-brand" placeholder="e.g. BrandCraft">
+        </div>
+        <div class="field">
+          <label>Industry</label>
+          <input type="text" id="lg-industry" placeholder="e.g. AI Software, Food, Fashion">
+        </div>
+        <div class="field">
+          <label>Visual Style</label>
+          <select id="lg-style">
+            <option>minimalist</option>
+            <option>geometric</option>
+            <option>vintage</option>
+            <option>futuristic</option>
+            <option>playful</option>
+            <option>luxury</option>
+            <option>hand-drawn</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Color Palette</label>
+          <input type="text" id="lg-colors" placeholder="e.g. deep navy and gold, earthy terracotta">
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="genLogo()">◉ Generate Logo</button>
+      <div class="loading-row" id="l-lg">
+        <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        Rendering with SDXL — this may take 30–90 seconds...
+      </div>
+
+      <div class="result-card" id="r-lg">
+        <div class="result-label">Generated Logo</div>
+        <div class="logo-output">
+          <div class="logo-frame" id="logo-frame">
+            <div class="logo-placeholder">
+              <span class="lp-icon">◉</span>
+              Logo will appear here
+            </div>
+          </div>
+          <div class="logo-info">
+            <div class="logo-prompt-used" id="logo-prompt-out">—</div>
+            <a id="logo-dl" class="btn btn-outline" download="brandcraft-logo.png">⬇ Download PNG</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- BRAND STORY -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="panel" id="p-brand-story">
+      <div class="page-hd">
+        <div class="page-hd-left">
+          <div class="page-eyebrow">Brand Identity · Step 4</div>
+          <div class="page-title">Brand <em>Story</em></div>
+          <div class="page-sub">Complete brand narrative, mission, vision, values & elevator pitch</div>
+        </div>
+        <span class="model-pill pill-groq">⚡ Groq · LLaMA 3.3-70B</span>
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Brand Name</label>
+          <input type="text" id="bs-brand" placeholder="e.g. BrandCraft">
+        </div>
+        <div class="field">
+          <label>Industry</label>
+          <input type="text" id="bs-industry" placeholder="e.g. AI Software">
+        </div>
+        <div class="field full">
+          <label>Mission / Core Purpose</label>
+          <input type="text" id="bs-mission" placeholder="What problem do you solve? What is your why?">
+        </div>
+        <div class="field">
+          <label>Target Audience</label>
+          <input type="text" id="bs-audience" placeholder="e.g. startup founders, SMBs">
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="genBrandStory()">◎ Generate Brand Story</button>
+      <div class="loading-row" id="l-bs">
+        <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        Writing your brand narrative...
+      </div>
+
+      <div class="result-card" id="r-bs">
+        <div class="result-label">Brand Identity Document</div>
+        <div id="story-out"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- PRODUCT COPY -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="panel" id="p-product">
+      <div class="page-hd">
+        <div class="page-hd-left">
+          <div class="page-eyebrow">Content Creation</div>
+          <div class="page-title">Product <em>Copy</em></div>
+          <div class="page-sub">Short, long, bullets, SEO — all formats for any platform</div>
+        </div>
+        <span class="model-pill pill-groq">⚡ Groq · LLaMA 3.3-70B</span>
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Product Name</label>
+          <input type="text" id="pd-name" placeholder="e.g. Organic Sourdough Loaf">
+        </div>
+        <div class="field">
+          <label>Copy Tone</label>
+          <select id="pd-tone">
+            <option>engaging</option>
+            <option>professional</option>
+            <option>luxurious</option>
+            <option>casual</option>
+            <option>technical</option>
+            <option>playful</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label>Key Features / Benefits</label>
+          <textarea id="pd-features" placeholder="Describe the product: ingredients, features, what makes it special, who it's for..."></textarea>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="genProduct()">▨ Generate Product Copy</button>
+      <div class="loading-row" id="l-pd">
+        <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        Writing product copy...
+      </div>
+
+      <div class="result-card" id="r-pd">
+        <div class="result-label">Product Copy</div>
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="tab('short', this)">Short</button>
+          <button class="tab-btn" onclick="tab('long', this)">Long</button>
+          <button class="tab-btn" onclick="tab('bullets', this)">Bullets</button>
+          <button class="tab-btn" onclick="tab('seo', this)">SEO</button>
+        </div>
+        <div class="tab-pane active" id="t-short"></div>
+        <div class="tab-pane" id="t-long"></div>
+        <div class="tab-pane" id="t-bullets"></div>
+        <div class="tab-pane" id="t-seo"></div>
+        <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border)">
+          <span style="font-family:var(--mono);font-size:0.62rem;color:var(--ink-dim)">TAGLINE — </span>
+          <span id="pd-tagline-out" style="font-family:var(--serif);font-style:italic;color:var(--rust);font-size:0.95rem"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- SOCIAL POSTS -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="panel" id="p-social">
+      <div class="page-hd">
+        <div class="page-hd-left">
+          <div class="page-eyebrow">Content Creation</div>
+          <div class="page-title">Social <em>Posts</em></div>
+          <div class="page-sub">3 platform-optimized posts with hashtags and timing tips</div>
+        </div>
+        <span class="model-pill pill-groq">⚡ Groq · LLaMA 3.3-70B</span>
+      </div>
+
+      <div class="form-grid cols-3">
+        <div class="field">
+          <label>Brand Name</label>
+          <input type="text" id="sp-brand" placeholder="e.g. BrandCraft">
+        </div>
+        <div class="field">
+          <label>Platform</label>
+          <select id="sp-platform">
+            <option>Instagram</option>
+            <option>Twitter/X</option>
+            <option>LinkedIn</option>
+            <option>Facebook</option>
+            <option>TikTok</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Tone</label>
+          <select id="sp-tone">
+            <option>casual</option>
+            <option>professional</option>
+            <option>humorous</option>
+            <option>inspirational</option>
+            <option>urgent</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label>Campaign Topic</label>
+          <textarea id="sp-topic" placeholder="What are you posting about? e.g. product launch, founder story, customer win, holiday sale..."></textarea>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="genSocial()">◆ Generate Posts</button>
+      <div class="loading-row" id="l-sp">
+        <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        Creating platform-optimized content...
+      </div>
+
+      <div class="result-card" id="r-sp">
+        <div class="result-label">Social Posts</div>
+        <div id="posts-out"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- EMAIL -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="panel" id="p-email">
+      <div class="page-hd">
+        <div class="page-hd-left">
+          <div class="page-eyebrow">Content Creation</div>
+          <div class="page-title">Email <em>Writer</em></div>
+          <div class="page-sub">Complete email campaigns with subject, preview, body & CTA</div>
+        </div>
+        <span class="model-pill pill-groq">⚡ Groq · LLaMA 3.3-70B</span>
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Brand Name</label>
+          <input type="text" id="em-brand" placeholder="e.g. BrandCraft">
+        </div>
+        <div class="field">
+          <label>Recipient Type</label>
+          <select id="em-recipient">
+            <option>customer</option>
+            <option>investor</option>
+            <option>partner</option>
+            <option>new subscriber</option>
+            <option>churned user</option>
+            <option>prospect</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Tone</label>
+          <select id="em-tone">
+            <option>professional</option>
+            <option>friendly</option>
+            <option>urgent</option>
+            <option>celebratory</option>
+            <option>empathetic</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Email Purpose</label>
+          <input type="text" id="em-purpose" placeholder="e.g. product launch, 50% sale, welcome email">
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="genEmail()">▲ Write Email</button>
+      <div class="loading-row" id="l-em">
+        <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        Composing email campaign...
+      </div>
+
+      <div class="result-card" id="r-em">
+        <button class="copy-floater" onclick="copyEl('em-body-raw')">Copy</button>
+        <div class="result-label">Email Preview</div>
+        <div class="email-preview-card">
+          <div class="email-header">
+            <div class="email-subject-line" id="em-subj"></div>
+            <div class="email-preview-text" id="em-prev"></div>
+          </div>
+          <div class="email-body-area" id="em-body"></div>
+          <div class="email-cta-area">
+            <span class="email-cta-btn" id="em-cta"></span>
+          </div>
+          <div class="email-ps" id="em-ps"></div>
+        </div>
+        <span id="em-body-raw" style="display:none"></span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- SENTIMENT -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="panel" id="p-sentiment">
+      <div class="page-hd">
+        <div class="page-hd-left">
+          <div class="page-eyebrow">Analytics</div>
+          <div class="page-title">Sentiment <em>Analysis</em></div>
+          <div class="page-sub">Emotional impact scoring, tone analysis, and brand perception insight</div>
+        </div>
+        <span class="model-pill pill-groq">⚡ Groq · LLaMA 3.3-70B</span>
+      </div>
+
+      <div class="form-grid cols-1">
+        <div class="field">
+          <label>Text to Analyze</label>
+          <textarea id="sa-text" style="min-height:140px" placeholder="Paste your tagline, ad copy, customer review, or any brand text here..."></textarea>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="genSentiment()">◐ Analyze Sentiment</button>
+      <div class="loading-row" id="l-sa">
+        <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        Analyzing emotional tone and brand impact...
+      </div>
+
+      <div class="result-card" id="r-sa">
+        <div class="result-label">Sentiment Report</div>
+        <div id="sentiment-out"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- SUMMARIZE -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="panel" id="p-summarize">
+      <div class="page-hd">
+        <div class="page-hd-left">
+          <div class="page-eyebrow">Analytics</div>
+          <div class="page-title">Text <em>Summarizer</em></div>
+          <div class="page-sub">Distill long brand documents into sharp, actionable insights</div>
+        </div>
+        <span class="model-pill pill-groq">⚡ Groq · LLaMA 3.3-70B</span>
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Summary Length</label>
+          <select id="sum-len">
+            <option value="brief">Brief — 1-2 sentences</option>
+            <option value="medium" selected>Medium — 1 paragraph</option>
+            <option value="detailed">Detailed — multiple paragraphs</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label>Content to Summarize</label>
+          <textarea id="sum-text" style="min-height:180px" placeholder="Paste long-form brand content, investor deck text, research, or documents here..."></textarea>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="genSummary()">≡ Summarize</button>
+      <div class="loading-row" id="l-sum">
+        <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        Summarizing content...
+      </div>
+
+      <div class="result-card" id="r-sum">
+        <button class="copy-floater" onclick="copyEl('sum-text-out')">Copy</button>
+        <div class="result-label">Summary</div>
+        <p class="summary-text" id="sum-text-out"></p>
+        <div id="sum-kp-out"></div>
+        <div class="word-stats" id="sum-stats-out"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- CHAT -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="panel" id="p-chat">
+      <div class="page-hd">
+        <div class="page-hd-left">
+          <div class="page-eyebrow">AI Consultant</div>
+          <div class="page-title">BrandCraft <em>AI</em></div>
+          <div class="page-sub">IBM Granite-powered branding advisor — ask anything about brand strategy</div>
+        </div>
+        <span class="model-pill pill-ibm">🧠 IBM Granite 3.3</span>
+      </div>
+
+      <div class="chat-shell">
+        <div class="chat-top">
+          <div class="chat-avatar">🧠</div>
+          <div>
+            <div class="chat-agent-name">BrandCraft AI</div>
+            <div class="chat-status">Online — IBM Granite 3.3</div>
+          </div>
+        </div>
+
+        <div class="chat-messages" id="chat-msgs">
+          <div class="msg ai">
+            <div class="msg-bubble">
+              Hello! I'm BrandCraft AI, your expert branding consultant powered by IBM Granite. I can help with brand strategy, positioning, naming frameworks, competitive differentiation, messaging architecture, visual identity guidelines, and go-to-market planning.<br><br>
+              What are you working on today?
+            </div>
+            <div class="msg-time">BrandCraft AI · now</div>
+          </div>
+        </div>
+
+        <div class="chat-foot">
+          <textarea id="chat-in" placeholder="Ask about brand strategy, positioning, naming, messaging..."
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"
+            oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,130)+'px'"></textarea>
+          <button class="btn btn-primary" id="chat-btn" onclick="sendMsg()">Send</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   BRANDCRAFT FRONTEND JS
+   ═════════════════════════════════════════════════════════════════════════ */
+
+const API = 'http://localhost:8000';
+let chatHistory = [];
+
+// ── NAV ────────────────────────────────────────────────────────────────────
+function go(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+  document.getElementById('p-' + name).classList.add('active');
+  el.classList.add('active');
+}
+
+// ── API ─────────────────────────────────────────────────────────────────────
+async function api(path, body) {
+  const res = await fetch(API + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err);
+  }
+  return res.json();
+}
+
+function load(id, on)  { document.getElementById('l-'+id).classList.toggle('show', on); }
+function show(id)      { const el = document.getElementById('r-'+id); el.classList.add('show'); el.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+function syncKeys()    {} // Keys go into .env — just visual reminder for demo
+
+// ── 1. BRAND NAMES ──────────────────────────────────────────────────────────
+async function genBrandNames() {
+  const btn = document.getElementById('bn-btn');
+  load('bn', true); btn.disabled = true;
+  try {
+    const data = await api('/api/brand-names', {
+      industry: document.getElementById('bn-industry').value,
+      keywords: document.getElementById('bn-keywords').value,
+      style:    document.getElementById('bn-style').value,
+      count:    +document.getElementById('bn-count').value,
+    });
+    document.getElementById('names-out').innerHTML = (data.brand_names || []).map(n => `
+      <div class="name-card" onclick="copyTxt('${n.name}', this)">
+        <h3>${n.name}</h3>
+        <p>${n.meaning || ''}</p>
+        <span class="cat-badge">${n.category || 'invented'}</span>
+        <span class="cat-badge ${n.domain_friendly ? 'dom-good' : 'dom-check'}">
+          ${n.domain_friendly ? '✓ domain-friendly' : 'check domain'}
+        </span>
+      </div>
+    `).join('');
+    show('bn');
+  } catch(e) { alert('Backend error: ' + e.message); }
+  finally { load('bn', false); btn.disabled = false; }
+}
+
+// ── 2. TAGLINES ─────────────────────────────────────────────────────────────
+async function genTaglines() {
+  load('tl', true);
+  try {
+    const data = await api('/api/taglines', {
+      brand_name: document.getElementById('tl-brand').value,
+      industry:   document.getElementById('tl-industry').value,
+      tone:       document.getElementById('tl-tone').value,
+    });
+    const colors = ['var(--rust)','var(--gold)','var(--sage)','#7b5ea7','var(--rust-lt)'];
+    document.getElementById('taglines-out').innerHTML = (data.taglines || []).map((t, i) => `
+      <div class="tagline-card" style="border-left-color:${colors[i%colors.length]}">
+        <div class="tagline-quote">"${t.tagline}"</div>
+        <div class="tagline-meta">
+          <span>Emotion: ${t.emotion||'—'}</span>
+          <span>Type: ${t.type||'—'}</span>
+        </div>
+        ${t.hook ? `<div class="tagline-hook">${t.hook}</div>` : ''}
+      </div>
+    `).join('');
+    show('tl');
+  } catch(e) { alert('Error: ' + e.message); }
+  finally { load('tl', false); }
+}
+
+// ── 3. LOGO ─────────────────────────────────────────────────────────────────
+async function genLogo() {
+  load('lg', true);
+  try {
+    const data = await api('/api/logo', {
+      brand_name: document.getElementById('lg-brand').value,
+      industry:   document.getElementById('lg-industry').value,
+      style:      document.getElementById('lg-style').value,
+      colors:     document.getElementById('lg-colors').value,
+    });
+    const src = 'data:image/png;base64,' + data.image_base64;
+    document.getElementById('logo-frame').innerHTML = `<img src="${src}" alt="Generated Logo">`;
+    document.getElementById('logo-dl').href = src;
+    document.getElementById('logo-prompt-out').textContent = 'Prompt: ' + (data.prompt_used || '');
+    show('lg');
+  } catch(e) { alert('Error: ' + e.message); }
+  finally { load('lg', false); }
+}
+
+// ── 4. BRAND STORY ──────────────────────────────────────────────────────────
+async function genBrandStory() {
+  load('bs', true);
+  try {
+    const data = await api('/api/brand-story', {
+      brand_name: document.getElementById('bs-brand').value,
+      industry:   document.getElementById('bs-industry').value,
+      mission:    document.getElementById('bs-mission').value,
+      audience:   document.getElementById('bs-audience').value,
+    });
+    const values = (data.values || []).map(v => `<span class="value-pill">${v}</span>`).join('');
+    document.getElementById('story-out').innerHTML = `
+      <div class="story-block">
+        <div class="story-block-label">Origin Story</div>
+        <p>${data.origin_story||''}</p>
+      </div>
+      <div class="story-block">
+        <div class="story-block-label">Mission Statement</div>
+        <p>${data.mission_statement||''}</p>
+      </div>
+      <div class="story-block">
+        <div class="story-block-label">Vision</div>
+        <p>${data.vision||''}</p>
+      </div>
+      <div class="story-block">
+        <div class="story-block-label">Core Values</div>
+        <div style="margin-top:0.3rem">${values}</div>
+      </div>
+      <div class="story-block">
+        <div class="story-block-label">Brand Promise</div>
+        <p>${data.brand_promise||''}</p>
+      </div>
+      <div class="story-block">
+        <div class="story-block-label">Positioning Statement</div>
+        <p>${data.positioning_statement||''}</p>
+      </div>
+      <div class="story-block">
+        <div class="story-block-label">Elevator Pitch</div>
+        <div class="elevator-pitch">"${data.elevator_pitch||''}"</div>
+      </div>
+    `;
+    show('bs');
+  } catch(e) { alert('Error: ' + e.message); }
+  finally { load('bs', false); }
+}
+
+// ── 5. PRODUCT ───────────────────────────────────────────────────────────────
+async function genProduct() {
+  load('pd', true);
+  try {
+    const data = await api('/api/product-description', {
+      product_name: document.getElementById('pd-name').value,
+      features:     document.getElementById('pd-features').value,
+      tone:         document.getElementById('pd-tone').value,
+    });
+    document.getElementById('t-short').innerHTML = `<p class="body-text">${data.short||''}</p>`;
+    document.getElementById('t-long').innerHTML  = `<p class="body-text">${data.long||''}</p>`;
+    document.getElementById('t-bullets').innerHTML = `<ul class="bullet-list">${(data.bullets||[]).map(b=>`<li>${b}</li>`).join('')}</ul>`;
+    document.getElementById('t-seo').innerHTML   = `<p class="body-text" style="font-family:var(--mono);font-size:0.8rem">${data.seo_description||''}</p>`;
+    document.getElementById('pd-tagline-out').textContent = data.tagline || '';
+    show('pd');
+  } catch(e) { alert('Error: ' + e.message); }
+  finally { load('pd', false); }
+}
+
+function tab(name, el) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('t-' + name).classList.add('active');
+}
+
+// ── 6. SOCIAL ────────────────────────────────────────────────────────────────
+async function genSocial() {
+  load('sp', true);
+  try {
+    const data = await api('/api/social-post', {
+      brand_name: document.getElementById('sp-brand').value,
+      topic:      document.getElementById('sp-topic').value,
+      platform:   document.getElementById('sp-platform').value,
+      tone:       document.getElementById('sp-tone').value,
+    });
+    document.getElementById('posts-out').innerHTML = (data.posts||[]).map((p,i) => `
+      <div class="post-card">
+        <div class="post-num">Post ${i+1} · ${data.platform||''}</div>
+        <div class="post-body">${p.post||''}</div>
+        <div class="hashtag-row">${(p.hashtags||[]).map(h=>`<span class="hashtag">#${h}</span>`).join('')}</div>
+        <div class="post-tip">⏰ Best time: ${p.best_time||'—'} &nbsp;·&nbsp; 💡 ${p.engagement_tip||''}</div>
+      </div>
+    `).join('');
+    show('sp');
+  } catch(e) { alert('Error: ' + e.message); }
+  finally { load('sp', false); }
+}
+
+// ── 7. EMAIL ─────────────────────────────────────────────────────────────────
+async function genEmail() {
+  load('em', true);
+  try {
+    const data = await api('/api/email', {
+      brand_name: document.getElementById('em-brand').value,
+      purpose:    document.getElementById('em-purpose').value,
+      recipient:  document.getElementById('em-recipient').value,
+      tone:       document.getElementById('em-tone').value,
+    });
+    document.getElementById('em-subj').textContent = '📧 ' + (data.subject||'');
+    document.getElementById('em-prev').textContent = data.preview_text||'';
+    document.getElementById('em-body').textContent = (data.greeting ? data.greeting + '\n\n' : '') + (data.body||'');
+    document.getElementById('em-cta').textContent  = data.cta_text||'Learn More';
+    document.getElementById('em-ps').textContent   = data.ps_line ? 'P.S. ' + data.ps_line : '';
+    document.getElementById('em-body-raw').textContent =
+      `Subject: ${data.subject}\n\n${data.greeting||''}\n\n${data.body||''}\n\n[CTA: ${data.cta_text}]\n\nP.S. ${data.ps_line||''}`;
+    show('em');
+  } catch(e) { alert('Error: ' + e.message); }
+  finally { load('em', false); }
+}
+
+// ── 8. SENTIMENT ──────────────────────────────────────────────────────────────
+async function genSentiment() {
+  load('sa', true);
+  try {
+    const data = await api('/api/sentiment', { text: document.getElementById('sa-text').value });
+    const score = Math.round((data.score||0.5)*100);
+    const sClass = 'sentiment-' + (data.sentiment||'neutral');
+    const emotions = data.emotions||{};
+    const emotionBars = Object.entries(emotions).map(([name, val]) => `
+      <div class="emotion-item">
+        <div class="emotion-name">${name}</div>
+        <div class="emotion-track">
+          <div class="emotion-fill" style="width:${Math.round(val*100)}%"></div>
+        </div>
+      </div>
+    `).join('');
+    document.getElementById('sentiment-out').innerHTML = `
+      <div class="${sClass}">
+        <div class="sentiment-row">
+          <div class="sentiment-dial">
+            <div class="dial-score">${score}%</div>
+            <div class="dial-label">score</div>
+          </div>
+          <div>
+            <div class="sentiment-word">${data.sentiment||'neutral'}</div>
+            <div class="sentiment-tone-label">Tone: ${data.tone||'—'} &nbsp;·&nbsp; Confidence: ${Math.round((data.confidence||0.8)*100)}%</div>
+          </div>
+        </div>
+        <div class="emotion-grid">${emotionBars}</div>
+      </div>
+      <div class="analysis-block">
+        <div class="analysis-block-label">Brand Impact</div>
+        <p>${data.brand_impact||''}</p>
+      </div>
+      <div class="analysis-block">
+        <div class="analysis-block-label">Audience Reaction</div>
+        <p>${data.target_audience_reaction||''}</p>
+      </div>
+      <div class="analysis-block">
+        <div class="analysis-block-label">Recommendation</div>
+        <p>${data.recommendation||''}</p>
+      </div>
+      ${data.revised_version ? `
+      <div class="analysis-block">
+        <div class="analysis-block-label">Revised Version</div>
+        <div class="revised-text">${data.revised_version}</div>
+      </div>` : ''}
+    `;
+    show('sa');
+  } catch(e) { alert('Error: ' + e.message); }
+  finally { load('sa', false); }
+}
+
+// ── 9. SUMMARIZE ─────────────────────────────────────────────────────────────
+async function genSummary() {
+  load('sum', true);
+  try {
+    const data = await api('/api/summarize', {
+      text:   document.getElementById('sum-text').value,
+      length: document.getElementById('sum-len').value,
+    });
+    document.getElementById('sum-text-out').textContent = data.summary||'';
+    const kpHtml = (data.key_points||[]).length
+      ? `<p style="font-family:var(--mono);font-size:0.62rem;color:var(--ink-dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.75rem">Key Points</p>`
+        + (data.key_points||[]).map(p=>`<div class="key-point-item">${p}</div>`).join('')
+      : '';
+    document.getElementById('sum-kp-out').innerHTML = kpHtml;
+    document.getElementById('sum-stats-out').innerHTML =
+      `<span>Original: ${data.word_count_original||'?'} words</span><span>Summary: ${data.word_count_summary||'?'} words</span><span>${data.readability_improvement||''}</span>`;
+    show('sum');
+  } catch(e) { alert('Error: ' + e.message); }
+  finally { load('sum', false); }
+}
+
+// ── 10. CHAT ──────────────────────────────────────────────────────────────────
+async function sendMsg() {
+  const input = document.getElementById('chat-in');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = ''; input.style.height = 'auto';
+
+  addMsg('user', msg);
+  chatHistory.push({ role: 'user', content: msg });
+
+  const btn = document.getElementById('chat-btn');
+  btn.disabled = true;
+
+  const tid = 'typing-' + Date.now();
+  addMsg('ai', '<em style="color:var(--ink-dim)">Thinking...</em>', tid);
+
+  try {
+    const data = await api('/api/chat', { message: msg, history: chatHistory });
+    document.getElementById(tid)?.remove();
+    chatHistory.push({ role: 'assistant', content: data.response });
+    addMsg('ai', data.response.replace(/\n/g, '<br>'));
+  } catch(e) {
+    document.getElementById(tid)?.remove();
+    addMsg('ai', '⚠️ Could not reach backend. Make sure <code>uvicorn main:app</code> is running on port 8000.');
+  } finally { btn.disabled = false; }
+}
+
+function addMsg(role, html, id) {
+  const msgs = document.getElementById('chat-msgs');
+  const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  const div  = document.createElement('div');
+  div.className = 'msg ' + role;
+  if (id) div.id = id;
+  div.innerHTML = `
+    <div class="msg-bubble">${html}</div>
+    <div class="msg-time">${role==='user' ? 'You' : 'BrandCraft AI'} · ${time}</div>
+  `;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function copyTxt(text, el) {
+  navigator.clipboard.writeText(text).then(() => {
+    const h3 = el.querySelector('h3');
+    const orig = h3.textContent;
+    h3.textContent = '✓ Copied!';
+    setTimeout(() => h3.textContent = orig, 1400);
+  });
+}
+
+function copyEl(id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    if (event.currentTarget) {
+      const orig = event.currentTarget.textContent;
+      event.currentTarget.textContent = '✓';
+      setTimeout(() => event.currentTarget.textContent = orig, 1400);
+    }
+  });
+}
+</script>
+</body>
+</html>
