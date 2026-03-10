@@ -537,6 +537,217 @@ select {
   font-family: var(--mono);
 }
 
+/* ─── LOGO STUDIO ─────────────────────────────────────────────────────────── */
+.logo-studio {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 0;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  min-height: 600px;
+}
+
+/* Left: live canvas */
+.studio-canvas {
+  background: #1a1612;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 1.25rem; padding: 2rem 1.5rem;
+  position: relative;
+}
+
+.canvas-label {
+  position: absolute; top: 1rem; left: 1rem;
+  font-family: var(--mono); font-size: 0.55rem;
+  text-transform: uppercase; letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.3);
+}
+
+.canvas-frame {
+  width: 240px; height: 240px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+  flex-shrink: 0;
+  transition: box-shadow 0.3s;
+}
+.canvas-frame:hover { box-shadow: 0 12px 60px rgba(0,0,0,0.65); }
+.canvas-frame svg, .canvas-frame img { width: 100%; height: 100%; display: block; }
+
+.canvas-actions {
+  display: flex; gap: 0.5rem;
+}
+
+.canvas-btn {
+  font-family: var(--mono); font-size: 0.6rem;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 6px 14px; border-radius: 5px; cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7);
+  transition: all 0.15s;
+}
+.canvas-btn:hover { background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.3); }
+.canvas-btn.primary { background: var(--rust); color: white; border-color: var(--rust); }
+.canvas-btn.primary:hover { background: #e05a30; }
+
+/* Right: controls panel */
+.studio-controls {
+  overflow-y: auto;
+  max-height: 600px;
+}
+
+.ctrl-section {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.ctrl-section:last-child { border-bottom: none; }
+
+.ctrl-title {
+  font-family: var(--mono); font-size: 0.58rem;
+  text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--ink-dim); margin-bottom: 0.65rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.ctrl-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* Color rows */
+.color-row { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.color-field {
+  display: flex; align-items: center; gap: 0.65rem;
+}
+
+.color-field-label {
+  font-family: var(--mono); font-size: 0.6rem;
+  color: var(--ink-dim); width: 60px; flex-shrink: 0;
+}
+
+.color-swatch {
+  width: 32px; height: 32px; border-radius: 6px;
+  border: 2px solid var(--border); cursor: pointer;
+  flex-shrink: 0; transition: transform 0.15s, border-color 0.15s;
+  position: relative; overflow: hidden;
+}
+.color-swatch:hover { transform: scale(1.12); border-color: var(--ink); }
+.color-swatch input[type="color"] {
+  position: absolute; inset: -4px; width: calc(100% + 8px); height: calc(100% + 8px);
+  opacity: 0; cursor: pointer; border: none; padding: 0;
+}
+
+.hex-input {
+  font-family: var(--mono); font-size: 0.75rem;
+  background: var(--paper); border: 1px solid var(--border);
+  border-radius: 5px; padding: 5px 9px;
+  color: var(--ink); width: 90px;
+  transition: border-color 0.15s;
+}
+.hex-input:focus { border-color: var(--rust); outline: none; }
+
+.opacity-slider {
+  flex: 1; -webkit-appearance: none; appearance: none;
+  height: 4px; border-radius: 2px; background: var(--border);
+  cursor: pointer; outline: none;
+}
+.opacity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px;
+  border-radius: 50%; background: var(--ink); cursor: pointer;
+  border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+/* Palette chips */
+.palette-row {
+  display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.5rem;
+}
+.palette-chip {
+  width: 24px; height: 24px; border-radius: 4px;
+  cursor: pointer; border: 2px solid transparent;
+  transition: transform 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.palette-chip:hover { transform: scale(1.2); border-color: var(--ink); }
+
+/* Shapes */
+.shape-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.shape-opt {
+  width: 46px; height: 46px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  border: 2px solid var(--border); border-radius: 8px;
+  cursor: pointer; background: var(--paper);
+  color: var(--ink-dim); transition: all 0.15s;
+  font-family: var(--mono); font-size: 0.45rem;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.shape-opt svg { flex-shrink: 0; }
+.shape-opt:hover { border-color: var(--rust); color: var(--rust); background: rgba(200,82,42,0.04); }
+.shape-opt.active { border-color: var(--rust); color: var(--rust); background: rgba(200,82,42,0.08); }
+
+/* Style chips */
+.style-row { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+.style-chip {
+  font-family: var(--mono); font-size: 0.58rem; text-transform: uppercase;
+  letter-spacing: 0.06em; padding: 5px 10px; border-radius: 5px;
+  border: 1px solid var(--border); background: var(--paper);
+  color: var(--ink-mid); cursor: pointer; transition: all 0.15s;
+}
+.style-chip:hover { border-color: var(--rust); color: var(--rust); }
+.style-chip.active { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+
+/* Font chips */
+.font-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.font-chip {
+  padding: 5px 10px; border-radius: 5px;
+  border: 1px solid var(--border); background: var(--paper);
+  color: var(--ink-mid); cursor: pointer; transition: all 0.15s;
+  font-size: 0.8rem;
+}
+.font-chip:hover { border-color: var(--rust); color: var(--ink); }
+.font-chip.active { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+
+/* Controls */
+.ctrl-row { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; }
+.ctrl-row label { font-family: var(--mono); font-size: 0.6rem; color: var(--ink-dim); width: 80px; flex-shrink: 0; }
+.ctrl-row input[type="range"] {
+  flex: 1; -webkit-appearance: none; height: 4px; border-radius: 2px;
+  background: var(--border); cursor: pointer; outline: none;
+}
+.ctrl-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px;
+  border-radius: 50%; background: var(--rust); cursor: pointer;
+  border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+.ctrl-val { font-family: var(--mono); font-size: 0.62rem; color: var(--rust); width: 32px; text-align: right; }
+
+/* Gradient toggle */
+.toggle-row { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; }
+.toggle-row label { font-family: var(--mono); font-size: 0.6rem; color: var(--ink-mid); }
+.toggle {
+  width: 32px; height: 18px; border-radius: 9px; background: var(--border);
+  cursor: pointer; position: relative; transition: background 0.2s; flex-shrink: 0;
+}
+.toggle.on { background: var(--rust); }
+.toggle::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 14px; height: 14px; border-radius: 50%; background: white;
+  transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.toggle.on::after { left: 16px; }
+
+/* Preset palettes section */
+.preset-palettes { display: flex; flex-direction: column; gap: 0.4rem; }
+.preset-palette {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 6px 10px; border-radius: 7px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--paper);
+  transition: all 0.15s;
+}
+.preset-palette:hover { border-color: var(--rust); background: rgba(200,82,42,0.04); }
+.preset-palette-swatches { display: flex; gap: 3px; }
+.preset-palette-swatch { width: 16px; height: 16px; border-radius: 3px; }
+.preset-palette-name { font-family: var(--mono); font-size: 0.6rem; color: var(--ink-mid); }
+
 /* ─── BRAND STORY ─────────────────────────────────────────────────────────── */
 .story-block { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
 .story-block:last-child { border-bottom: none; margin-bottom: 0; }
@@ -1116,62 +1327,219 @@ select {
       <div class="page-hd">
         <div class="page-hd-left">
           <div class="page-eyebrow">Visual Identity · Step 3</div>
-          <div class="page-title">Logo <em>Generator</em></div>
-          <div class="page-sub">AI-generated logos via Stable Diffusion XL — allow 30–90 seconds</div>
+          <div class="page-title">Logo <em>Studio</em></div>
+          <div class="page-sub">Design your logo live — every change renders instantly on the canvas</div>
         </div>
-        <span class="model-pill pill-sdxl">🎨 SDXL · HuggingFace</span>
+        <span class="model-pill pill-sdxl">🎨 Live Canvas + AI</span>
       </div>
 
-      <div class="form-grid">
-        <div class="field">
-          <label>Brand Name</label>
-          <input type="text" id="lg-brand" placeholder="e.g. BrandCraft">
-        </div>
-        <div class="field">
-          <label>Industry</label>
-          <input type="text" id="lg-industry" placeholder="e.g. AI Software, Food, Fashion">
-        </div>
-        <div class="field">
-          <label>Visual Style</label>
-          <select id="lg-style">
-            <option>minimalist</option>
-            <option>geometric</option>
-            <option>vintage</option>
-            <option>futuristic</option>
-            <option>playful</option>
-            <option>luxury</option>
-            <option>hand-drawn</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Color Palette</label>
-          <input type="text" id="lg-colors" placeholder="e.g. deep navy and gold, earthy terracotta">
-        </div>
-      </div>
+      <!-- State stored in JS variables, not hidden inputs -->
 
-      <button class="btn btn-primary" onclick="genLogo()">◉ Generate Logo</button>
-      <div class="loading-row" id="l-lg">
-        <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-        Rendering with SDXL — this may take 30–90 seconds...
-      </div>
+      <div class="logo-studio">
 
-      <div class="result-card" id="r-lg">
-        <div class="result-label">Generated Logo</div>
+        <!-- ── LEFT: Live Canvas ── -->
+        <div class="studio-canvas">
+          <div class="canvas-label">Live Canvas · 512×512</div>
+          <div class="canvas-frame" id="canvas-frame">
+            <!-- SVG renders here instantly -->
+          </div>
+          <div class="canvas-actions">
+            <button class="canvas-btn primary" onclick="genLogo()">◉ Generate AI Logo</button>
+            <button class="canvas-btn" onclick="downloadSVG()">↓ SVG</button>
+          </div>
+          <div style="font-family:var(--mono);font-size:0.55rem;color:rgba(255,255,255,0.25);text-align:center;line-height:1.6;max-width:200px">
+            AI logo uses your exact colors &amp; style. SVG downloads instantly.
+          </div>
+          <!-- Loading state inside canvas -->
+          <div id="canvas-loading" style="display:none;position:absolute;inset:0;background:rgba(26,22,18,0.85);align-items:center;justify-content:center;flex-direction:column;gap:0.75rem;border-radius:14px 0 0 14px">
+            <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+            <div style="font-family:var(--mono);font-size:0.62rem;color:rgba(255,255,255,0.6)">Generating AI logo... <span id="lg-timer"></span></div>
+          </div>
+        </div>
+
+        <!-- ── RIGHT: Controls ── -->
+        <div class="studio-controls">
+
+          <!-- Brand info -->
+          <div class="ctrl-section">
+            <div class="ctrl-title">Brand Info</div>
+            <div style="display:flex;flex-direction:column;gap:0.5rem">
+              <input type="text" id="lg-brand" placeholder="Brand Name" oninput="updatePreview()" style="font-size:0.875rem">
+              <input type="text" id="lg-industry" placeholder="Industry (optional)" oninput="updatePreview()" style="font-size:0.875rem">
+            </div>
+          </div>
+
+          <!-- Shape -->
+          <div class="ctrl-section">
+            <div class="ctrl-title">Icon Shape</div>
+            <div class="shape-row" id="shape-row">
+              <div class="shape-opt active" data-shape="circle" onclick="setShape(this)" title="Circle">
+                <svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" fill="currentColor" opacity="0.2" stroke="currentColor" stroke-width="1.5"/></svg>
+                <span>Circle</span>
+              </div>
+              <div class="shape-opt" data-shape="hexagon" onclick="setShape(this)" title="Hexagon">
+                <svg width="20" height="20" viewBox="0 0 20 20"><polygon points="10,2 17,6 17,14 10,18 3,14 3,6" fill="currentColor" opacity="0.2" stroke="currentColor" stroke-width="1.5"/></svg>
+                <span>Hex</span>
+              </div>
+              <div class="shape-opt" data-shape="diamond" onclick="setShape(this)" title="Diamond">
+                <svg width="20" height="20" viewBox="0 0 20 20"><polygon points="10,2 18,10 10,18 2,10" fill="currentColor" opacity="0.2" stroke="currentColor" stroke-width="1.5"/></svg>
+                <span>Diamond</span>
+              </div>
+              <div class="shape-opt" data-shape="square" onclick="setShape(this)" title="Square">
+                <svg width="20" height="20" viewBox="0 0 20 20"><rect x="2" y="2" width="16" height="16" rx="3" fill="currentColor" opacity="0.2" stroke="currentColor" stroke-width="1.5"/></svg>
+                <span>Square</span>
+              </div>
+              <div class="shape-opt" data-shape="triangle" onclick="setShape(this)" title="Triangle">
+                <svg width="20" height="20" viewBox="0 0 20 20"><polygon points="10,2 18,18 2,18" fill="currentColor" opacity="0.2" stroke="currentColor" stroke-width="1.5"/></svg>
+                <span>Triangle</span>
+              </div>
+              <div class="shape-opt" data-shape="shield" onclick="setShape(this)" title="Shield">
+                <svg width="20" height="20" viewBox="0 0 20 20"><path d="M10,1 L18,5 L18,12 Q10,19 10,19 Q2,12 2,12 L2,5 Z" fill="currentColor" opacity="0.2" stroke="currentColor" stroke-width="1.5"/></svg>
+                <span>Shield</span>
+              </div>
+              <div class="shape-opt" data-shape="star" onclick="setShape(this)" title="Star">
+                <svg width="20" height="20" viewBox="0 0 20 20"><polygon points="10,1 12.5,7.5 19,7.5 14,12 16,18.5 10,15 4,18.5 6,12 1,7.5 7.5,7.5" fill="currentColor" opacity="0.2" stroke="currentColor" stroke-width="1.5"/></svg>
+                <span>Star</span>
+              </div>
+              <div class="shape-opt" data-shape="pill" onclick="setShape(this)" title="Pill">
+                <svg width="20" height="20" viewBox="0 0 20 20"><rect x="2" y="5" width="16" height="10" rx="5" fill="currentColor" opacity="0.2" stroke="currentColor" stroke-width="1.5"/></svg>
+                <span>Pill</span>
+              </div>
+              <div class="shape-opt" data-shape="arch" onclick="setShape(this)" title="Arch">
+                <svg width="20" height="20" viewBox="0 0 20 20"><path d="M3,18 L3,10 Q3,2 10,2 Q17,2 17,10 L17,18 Z" fill="currentColor" opacity="0.2" stroke="currentColor" stroke-width="1.5"/></svg>
+                <span>Arch</span>
+              </div>
+              <div class="shape-opt" data-shape="cross" onclick="setShape(this)" title="Plus">
+                <svg width="20" height="20" viewBox="0 0 20 20"><rect x="8" y="2" width="4" height="16" rx="1" fill="currentColor" opacity="0.5"/><rect x="2" y="8" width="16" height="4" rx="1" fill="currentColor" opacity="0.5"/></svg>
+                <span>Plus</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Visual Style -->
+          <div class="ctrl-section">
+            <div class="ctrl-title">Visual Style</div>
+            <div class="style-row" id="style-row">
+              <div class="style-chip active" data-style="minimalist" onclick="setStyle(this)">Minimal</div>
+              <div class="style-chip" data-style="geometric" onclick="setStyle(this)">Geometric</div>
+              <div class="style-chip" data-style="luxury" onclick="setStyle(this)">Luxury</div>
+              <div class="style-chip" data-style="vintage" onclick="setStyle(this)">Vintage</div>
+              <div class="style-chip" data-style="futuristic" onclick="setStyle(this)">Futuristic</div>
+              <div class="style-chip" data-style="playful" onclick="setStyle(this)">Playful</div>
+              <div class="style-chip" data-style="bold" onclick="setStyle(this)">Bold</div>
+              <div class="style-chip" data-style="art-deco" onclick="setStyle(this)">Art Deco</div>
+              <div class="style-chip" data-style="neon" onclick="setStyle(this)">Neon</div>
+              <div class="style-chip" data-style="organic" onclick="setStyle(this)">Organic</div>
+            </div>
+          </div>
+
+          <!-- Colors -->
+          <div class="ctrl-section">
+            <div class="ctrl-title">Colors</div>
+            <div class="color-row">
+              <div class="color-field">
+                <span class="color-field-label">Primary</span>
+                <div class="color-swatch" id="swatch-primary" style="background:#1a1628">
+                  <input type="color" id="lg-color-primary" value="#1a1628" oninput="onColorChange('primary',this.value)">
+                </div>
+                <input class="hex-input" id="hex-primary" value="#1a1628" maxlength="7"
+                  oninput="onHexType('primary',this.value)" placeholder="#000000">
+              </div>
+              <div class="color-field">
+                <span class="color-field-label">Accent</span>
+                <div class="color-swatch" id="swatch-accent" style="background:#c8522a">
+                  <input type="color" id="lg-color-accent" value="#c8522a" oninput="onColorChange('accent',this.value)">
+                </div>
+                <input class="hex-input" id="hex-accent" value="#c8522a" maxlength="7"
+                  oninput="onHexType('accent',this.value)" placeholder="#000000">
+              </div>
+              <div class="color-field">
+                <span class="color-field-label">Background</span>
+                <div class="color-swatch" id="swatch-bg" style="background:#fafafa;border:1px solid #ddd">
+                  <input type="color" id="lg-color-bg" value="#fafafa" oninput="onColorChange('bg',this.value)">
+                </div>
+                <input class="hex-input" id="hex-bg" value="#fafafa" maxlength="7"
+                  oninput="onHexType('bg',this.value)" placeholder="#ffffff">
+              </div>
+              <div class="toggle-row" style="margin-top:0.35rem">
+                <div class="toggle" id="grad-toggle" onclick="toggleGradient()"></div>
+                <label>Use gradient on shape</label>
+              </div>
+              <!-- Quick palette strips -->
+              <div style="margin-top:0.35rem">
+                <div style="font-family:var(--mono);font-size:0.55rem;color:var(--ink-dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.4rem">Quick Palettes</div>
+                <div class="palette-row" id="palette-row">
+                  <!-- Rendered by JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Typography -->
+          <div class="ctrl-section">
+            <div class="ctrl-title">Typography</div>
+            <div class="font-row" id="font-row">
+              <div class="font-chip active" data-font="Arial Black" onclick="setFont(this)" style="font-family:'Arial Black',sans-serif;font-weight:900">Aa</div>
+              <div class="font-chip" data-font="Georgia" onclick="setFont(this)" style="font-family:Georgia,serif;font-style:italic">Aa</div>
+              <div class="font-chip" data-font="Courier New" onclick="setFont(this)" style="font-family:'Courier New',monospace">Aa</div>
+              <div class="font-chip" data-font="Trebuchet MS" onclick="setFont(this)" style="font-family:'Trebuchet MS',sans-serif">Aa</div>
+              <div class="font-chip" data-font="Impact" onclick="setFont(this)" style="font-family:Impact,sans-serif">Aa</div>
+              <div class="font-chip" data-font="Palatino" onclick="setFont(this)" style="font-family:Palatino,serif">Aa</div>
+            </div>
+            <div style="margin-top:0.65rem">
+              <div class="ctrl-row">
+                <label>Size</label>
+                <input type="range" min="50" max="120" value="88" id="font-size-range" oninput="updateRangeVal('font-size-val',this.value);updatePreview()">
+                <span class="ctrl-val" id="font-size-val">88</span>
+              </div>
+              <div class="ctrl-row">
+                <label>Spacing</label>
+                <input type="range" min="-10" max="20" value="-3" id="letter-space-range" oninput="updateRangeVal('letter-space-val',this.value);updatePreview()">
+                <span class="ctrl-val" id="letter-space-val">-3</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fine-tune -->
+          <div class="ctrl-section">
+            <div class="ctrl-title">Fine-tune</div>
+            <div class="ctrl-row">
+              <label>Icon size</label>
+              <input type="range" min="60" max="140" value="118" id="icon-size-range" oninput="updateRangeVal('icon-size-val',this.value);updatePreview()">
+              <span class="ctrl-val" id="icon-size-val">118</span>
+            </div>
+            <div class="ctrl-row">
+              <label>Icon Y</label>
+              <input type="range" min="100" max="260" value="188" id="icon-y-range" oninput="updateRangeVal('icon-y-val',this.value);updatePreview()">
+              <span class="ctrl-val" id="icon-y-val">188</span>
+            </div>
+            <div class="ctrl-row">
+              <label>Accent width</label>
+              <input type="range" min="1" max="8" value="3" id="accent-w-range" oninput="updateRangeVal('accent-w-val',this.value);updatePreview()">
+              <span class="ctrl-val" id="accent-w-val">3</span>
+            </div>
+          </div>
+
+        </div><!-- /studio-controls -->
+      </div><!-- /logo-studio -->
+
+      <!-- Result card (AI-generated image) -->
+      <div class="result-card" id="r-lg" style="margin-top:1.5rem">
+        <div class="result-label">AI-Generated Logo</div>
         <div class="logo-output">
           <div class="logo-frame" id="logo-frame">
             <div class="logo-placeholder">
               <span class="lp-icon">◉</span>
-              Logo will appear here
+              AI render will appear here
             </div>
           </div>
           <div class="logo-info">
             <div class="logo-prompt-used" id="logo-prompt-out">—</div>
-            <a id="logo-dl" class="btn btn-outline" download="brandcraft-logo.png">⬇ Download PNG</a>
+            <a id="logo-dl" class="btn btn-outline" download="logo.png">⬇ Download</a>
           </div>
         </div>
       </div>
     </div>
-
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <!-- BRAND STORY -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
@@ -1528,6 +1896,12 @@ select {
 const API = '';
 let chatHistory = [];
 
+// ── INIT ───────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  initPalettes();   // render palette chips
+  updatePreview();  // render live canvas
+});
+
 // ── NAV ────────────────────────────────────────────────────────────────────
 function go(name, el) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -1605,23 +1979,329 @@ async function genTaglines() {
   finally { load('tl', false); }
 }
 
-// ── 3. LOGO ─────────────────────────────────────────────────────────────────
+// ── 3. LOGO STUDIO ───────────────────────────────────────────────────────────
+// State lives here — never in hidden DOM inputs (which are unreliable)
+const LOGO = {
+  shape:    'circle',
+  style:    'minimalist',
+  font:     'Arial Black',
+  gradient: false,
+};
+
+// ─ Palette presets (primary, accent, bg)
+const PALETTES = [
+  { name:"Navy + Gold",    p:"#0d1f3c", a:"#b8860b", bg:"#fafafa" },
+  { name:"Forest",         p:"#1e4d2b", a:"#4caf7d", bg:"#f0faf4" },
+  { name:"Mono + Red",     p:"#111111", a:"#e63946", bg:"#ffffff" },
+  { name:"Royal",          p:"#4a1c8c", a:"#d4ac0d", bg:"#fafafa" },
+  { name:"Terracotta",     p:"#c4622d", a:"#1a1612", bg:"#fff8f0" },
+  { name:"Ocean",          p:"#0047ab", a:"#00c9ff", bg:"#f0f6ff" },
+  { name:"Rose Gold",      p:"#b5636e", a:"#d4a574", bg:"#fff8f8" },
+  { name:"Midnight",       p:"#0a0a1a", a:"#7c5cbf", bg:"#0f0f2a" },
+  { name:"Sage",           p:"#3d6b4f", a:"#c8a96e", bg:"#f5f5f0" },
+  { name:"Neon Dark",      p:"#0d0d0d", a:"#00ff88", bg:"#0d0d0d" },
+  { name:"Coral",          p:"#e05a4e", a:"#f5a623", bg:"#fff9f8" },
+  { name:"Ice",            p:"#1a3a4a", a:"#a8d8ea", bg:"#f0f8ff" },
+];
+
+function initPalettes() {
+  const row = document.getElementById('palette-row');
+  if (!row) return;
+  row.innerHTML = PALETTES.map((pal, i) =>
+    `<div class="palette-chip" title="${pal.name}"
+      style="background:${pal.p};box-shadow:inset 2px 0 0 ${pal.a}"
+      onclick="applyPreset('${pal.p}','${pal.a}','${pal.bg}')"></div>`
+  ).join('');
+}
+
+function applyPreset(p, a, bg) {
+  document.getElementById('lg-color-primary').value = p;
+  document.getElementById('lg-color-accent').value  = a;
+  document.getElementById('lg-color-bg').value      = bg;
+  document.getElementById('hex-primary').value      = p;
+  document.getElementById('hex-accent').value       = a;
+  document.getElementById('hex-bg').value           = bg;
+  document.getElementById('swatch-primary').style.background = p;
+  document.getElementById('swatch-accent').style.background  = a;
+  document.getElementById('swatch-bg').style.background      = bg;
+  updatePreview();
+}
+
+function onColorChange(key, val) {
+  document.getElementById('hex-'  + key).value = val;
+  document.getElementById('swatch-'+key).style.background = val;
+  updatePreview();
+}
+
+function onHexType(key, val) {
+  if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+    document.getElementById('lg-color-'+key).value = val;
+    document.getElementById('swatch-'+key).style.background = val;
+    updatePreview();
+  }
+}
+
+function setShape(el) {
+  document.querySelectorAll('.shape-opt').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  LOGO.shape = el.dataset.shape;          // ← single source of truth
+  updatePreview();
+}
+
+function setStyle(el) {
+  document.querySelectorAll('.style-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  LOGO.style = el.dataset.style;
+  updatePreview();
+}
+
+function setFont(el) {
+  document.querySelectorAll('.font-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  LOGO.font = el.dataset.font;
+  updatePreview();
+}
+
+function toggleGradient() {
+  const t = document.getElementById('grad-toggle');
+  LOGO.gradient = t.classList.toggle('on');
+  updatePreview();
+}
+
+function updateRangeVal(spanId, val) {
+  document.getElementById(spanId).textContent = val;
+}
+
+// ─ Core SVG builder (runs client-side for live preview)
+function buildLogoSVG(W, H) {
+  const brand    = (document.getElementById('lg-brand')?.value    || 'BC').trim();
+  const industry = (document.getElementById('lg-industry')?.value || '').toUpperCase().slice(0,24);
+  const primary  = document.getElementById('lg-color-primary')?.value || '#1a1628';
+  const accent   = document.getElementById('lg-color-accent')?.value  || '#c8522a';
+  const bg       = document.getElementById('lg-color-bg')?.value      || '#fafafa';
+  const shape    = LOGO.shape;    // ← from JS state, always correct
+  const style    = LOGO.style;
+  const font     = LOGO.font;
+  const useGrad  = LOGO.gradient;
+  const fontSize = +(document.getElementById('font-size-range')?.value  || 88);
+  const lSpace   = +(document.getElementById('letter-space-range')?.value || -3);
+  const iconR    = +(document.getElementById('icon-size-range')?.value  || 118);
+  const iconY    = +(document.getElementById('icon-y-range')?.value     || 188);
+  const accentW  = +(document.getElementById('accent-w-range')?.value   || 3);
+
+  // Scale all coordinates from 512 base to target W
+  const S  = W / 512;
+  const CX = 256 * S;
+  const CY = iconY * S;
+  const R  = iconR * S;
+
+  const initials = brand.split(' ').map(w => w[0]||'').join('').toUpperCase().slice(0,2)
+                   || brand.slice(0,2).toUpperCase();
+
+  // Luminance → text color on primary
+  const ph = primary.replace('#','');
+  const pr = parseInt(ph.slice(0,2),16), pg = parseInt(ph.slice(2,4),16), pb = parseInt(ph.slice(4,6),16);
+  const onPri = (pr*.299+pg*.587+pb*.114) > 155 ? '#111111' : '#ffffff';
+
+  // ─ Build icon shape path/element ─────────────────────────────────────────
+  let iconEl = '';
+
+  const gradId    = 'g' + Math.random().toString(36).slice(2,6);
+  const fillColor = useGrad ? `url(#${gradId})` : primary;
+
+  // Helper: hexagon points
+  const hexPts = (cx,cy,r,rot=0) =>
+    Array.from({length:6},(_,i) =>
+      `${cx+r*Math.cos((60*i+rot)*Math.PI/180)},${cy+r*Math.sin((60*i+rot)*Math.PI/180)}`
+    ).join(' ');
+
+  if (shape === 'hexagon') {
+    iconEl = `<polygon points="${hexPts(CX,CY,R,-30)}" fill="${fillColor}"/>
+    <polygon points="${hexPts(CX,CY,R-accentW*S*4,-30)}" fill="none" stroke="${accent}" stroke-width="${accentW*S}"/>`;
+
+  } else if (shape === 'diamond') {
+    iconEl = `<polygon points="${CX},${CY-R} ${CX+R},${CY} ${CX},${CY+R} ${CX-R},${CY}" fill="${fillColor}"/>
+    <polygon points="${CX},${CY-R+accentW*S*5} ${CX+R-accentW*S*5},${CY} ${CX},${CY+R-accentW*S*5} ${CX-R+accentW*S*5},${CY}" fill="none" stroke="${accent}" stroke-width="${accentW*S}"/>`;
+
+  } else if (shape === 'triangle') {
+    const th = R*1.1;
+    iconEl = `<polygon points="${CX},${CY-th} ${CX+R},${CY+R*.55} ${CX-R},${CY+R*.55}" fill="${fillColor}"/>
+    <polygon points="${CX},${CY-th+accentW*S*5} ${CX+R-accentW*S*6},${CY+R*.55-accentW*S*3} ${CX-R+accentW*S*6},${CY+R*.55-accentW*S*3}" fill="none" stroke="${accent}" stroke-width="${accentW*S}"/>`;
+
+  } else if (shape === 'square') {
+    const hr = R*.9;
+    const rx = 12*S;
+    iconEl = `<rect x="${CX-hr}" y="${CY-hr}" width="${hr*2}" height="${hr*2}" rx="${rx}" fill="${fillColor}"/>
+    <rect x="${CX-hr+accentW*S*4}" y="${CY-hr+accentW*S*4}" width="${hr*2-accentW*S*8}" height="${hr*2-accentW*S*8}" rx="${rx*.6}" fill="none" stroke="${accent}" stroke-width="${accentW*S}"/>`;
+
+  } else if (shape === 'shield') {
+    iconEl = `<path d="M${CX},${CY-R} L${CX+R},${CY-R*.45} L${CX+R},${CY+R*.32} Q${CX},${CY+R} ${CX},${CY+R} Q${CX-R},${CY+R} ${CX-R},${CY+R*.32} L${CX-R},${CY-R*.45} Z" fill="${fillColor}"/>
+    <path d="M${CX},${CY-R+accentW*S*5} L${CX+R-accentW*S*5},${CY-R*.45+accentW*S*2.5} L${CX+R-accentW*S*5},${CY+R*.32} Q${CX},${CY+R-accentW*S*5} ${CX},${CY+R-accentW*S*5} Q${CX-R+accentW*S*5},${CY+R-accentW*S*5} ${CX-R+accentW*S*5},${CY+R*.32} L${CX-R+accentW*S*5},${CY-R*.45+accentW*S*2.5} Z" fill="none" stroke="${accent}" stroke-width="${accentW*S}"/>`;
+
+  } else if (shape === 'star') {
+    const outer = R, inner = R*.42;
+    const starPts = Array.from({length:5},(_,i) =>
+      `${CX+outer*Math.cos((72*i-90)*Math.PI/180)},${CY+outer*Math.sin((72*i-90)*Math.PI/180)} ` +
+      `${CX+inner*Math.cos((72*i-54)*Math.PI/180)},${CY+inner*Math.sin((72*i-54)*Math.PI/180)}`
+    ).join(' ');
+    iconEl = `<polygon points="${starPts}" fill="${fillColor}" stroke="${accent}" stroke-width="${accentW*S}" stroke-linejoin="round"/>`;
+
+  } else if (shape === 'pill') {
+    const pw = R*1.6, ph2 = R*.7;
+    iconEl = `<rect x="${CX-pw}" y="${CY-ph2}" width="${pw*2}" height="${ph2*2}" rx="${ph2}" fill="${fillColor}"/>
+    <rect x="${CX-pw+accentW*S*4}" y="${CY-ph2+accentW*S*4}" width="${pw*2-accentW*S*8}" height="${ph2*2-accentW*S*8}" rx="${(ph2-accentW*S*4)}" fill="none" stroke="${accent}" stroke-width="${accentW*S}"/>`;
+
+  } else if (shape === 'arch') {
+    iconEl = `<path d="M${CX-R},${CY+R} L${CX-R},${CY} Q${CX-R},${CY-R} ${CX},${CY-R} Q${CX+R},${CY-R} ${CX+R},${CY} L${CX+R},${CY+R} Z" fill="${fillColor}"/>
+    <path d="M${CX-R+accentW*S*4},${CY+R} L${CX-R+accentW*S*4},${CY} Q${CX-R+accentW*S*4},${CY-R+accentW*S*4} ${CX},${CY-R+accentW*S*4} Q${CX+R-accentW*S*4},${CY-R+accentW*S*4} ${CX+R-accentW*S*4},${CY} L${CX+R-accentW*S*4},${CY+R} Z" fill="none" stroke="${accent}" stroke-width="${accentW*S}"/>`;
+
+  } else if (shape === 'cross') {
+    const arm = R*.35, len = R;
+    iconEl = `<rect x="${CX-arm}" y="${CY-len}" width="${arm*2}" height="${len*2}" rx="${arm*.5}" fill="${fillColor}"/>
+    <rect x="${CX-len}" y="${CY-arm}" width="${len*2}" height="${arm*2}" rx="${arm*.5}" fill="${fillColor}"/>`;
+
+  } else { // circle (default)
+    iconEl = `<circle cx="${CX}" cy="${CY}" r="${R}" fill="${fillColor}"/>
+    <circle cx="${CX}" cy="${CY}" r="${R-accentW*S*4.5}" fill="none" stroke="${accent}" stroke-width="${accentW*S}"/>`;
+  }
+
+  // ─ Style decorations ───────────────────────────────────────────────────────
+  let deco = '';
+  if (style === 'luxury') {
+    for (let a = 0; a < 360; a += 90) {
+      const dx = CX + (R+14*S)*Math.cos(a*Math.PI/180);
+      const dy = CY + (R+14*S)*Math.sin(a*Math.PI/180);
+      deco += `<circle cx="${dx.toFixed(1)}" cy="${dy.toFixed(1)}" r="${4*S}" fill="${accent}"/>`;
+    }
+  } else if (style === 'futuristic') {
+    deco = `<line x1="${CX-R-20*S}" y1="${CY}" x2="${CX-R+5*S}" y2="${CY}" stroke="${accent}" stroke-width="${2*S}"/>
+    <line x1="${CX+R-5*S}" y1="${CY}" x2="${CX+R+20*S}" y2="${CY}" stroke="${accent}" stroke-width="${2*S}"/>
+    <circle cx="${(CX-R-22*S).toFixed(1)}" cy="${CY}" r="${3.5*S}" fill="${accent}"/>
+    <circle cx="${(CX+R+22*S).toFixed(1)}" cy="${CY}" r="${3.5*S}" fill="${accent}"/>`;
+  } else if (style === 'playful') {
+    deco = `<circle cx="${(CX-R-12*S).toFixed(1)}" cy="${(CY-18*S).toFixed(1)}" r="${7*S}" fill="${accent}" opacity="0.65"/>
+    <circle cx="${(CX+R+12*S).toFixed(1)}" cy="${(CY+16*S).toFixed(1)}" r="${5*S}" fill="${accent}" opacity="0.5"/>
+    <circle cx="${(CX+22*S).toFixed(1)}" cy="${(CY-R-16*S).toFixed(1)}" r="${6*S}" fill="${accent}" opacity="0.6"/>`;
+  } else if (style === 'art-deco') {
+    const lineCount = 5;
+    for (let i = 1; i <= lineCount; i++) {
+      const off = i*7*S;
+      deco += `<circle cx="${CX}" cy="${CY}" r="${R+off}" fill="none" stroke="${accent}" stroke-width="${S*.5}" opacity="${0.3-i*0.04}"/>`;
+    }
+  } else if (style === 'neon') {
+    deco = `<circle cx="${CX}" cy="${CY}" r="${R+6*S}" fill="none" stroke="${accent}" stroke-width="${3*S}" opacity="0.3" filter="url(#neon-glow)"/>`;
+  } else if (style === 'vintage') {
+    deco = `<line x1="${126*S}" y1="${326*S}" x2="${386*S}" y2="${326*S}" stroke="${accent}" stroke-width="${1.5*S}" opacity="0.5"/>
+    <line x1="${146*S}" y1="${332*S}" x2="${366*S}" y2="${332*S}" stroke="${accent}" stroke-width="${.8*S}" opacity="0.35"/>`;
+  } else if (style === 'geometric') {
+    // Corner tick marks
+    const corners = [[128,128],[384,128],[128,384],[384,384]];
+    corners.forEach(([x,y]) => {
+      const sx=x*S, sy=y*S, ts=16*S;
+      const dx = x<256 ? 1 : -1, dy = y<256 ? 1 : -1;
+      deco += `<line x1="${sx}" y1="${sy}" x2="${sx+ts*dx}" y2="${sy}" stroke="${accent}" stroke-width="${2*S}"/>`;
+      deco += `<line x1="${sx}" y1="${sy}" x2="${sx}" y2="${sy+ts*dy}" stroke="${accent}" stroke-width="${2*S}"/>`;
+    });
+  } else if (style === 'organic') {
+    deco = `<ellipse cx="${(CX-R*.3).toFixed(1)}" cy="${(CY-R*.3).toFixed(1)}" rx="${R*.25}" ry="${R*.18}" fill="${accent}" opacity="0.15" transform="rotate(-30,${CX},${CY})"/>`;
+  } else if (style === 'bold') {
+    // Fat outer ring
+    deco = `<circle cx="${CX}" cy="${CY}" r="${R+8*S}" fill="none" stroke="${accent}" stroke-width="${6*S}"/>`;
+  }
+
+  // ─ Text color on background ────────────────────────────────────────────────
+  const bgh  = bg.replace('#','');
+  const bgr  = parseInt(bgh.slice(0,2),16), bgg = parseInt(bgh.slice(2,4),16), bgb = parseInt(bgh.slice(4,6),16);
+  const bgLight = (bgr*.299+bgg*.587+bgb*.114) > 100;
+  const nameColor = bgLight ? primary : (onPri === '#ffffff' ? '#ffffff' : primary);
+
+  // ─ Assemble SVG ───────────────────────────────────────────────────────────
+  const gradDef = useGrad ? `<defs>
+    <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="${primary}"/>
+      <stop offset="100%" stop-color="${accent}" stop-opacity="0.85"/>
+    </linearGradient>
+    <filter id="neon-glow"><feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>` : `<defs>
+    <filter id="neon-glow"><feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>`;
+
+  const brandDisplay = brand.toUpperCase().slice(0,16);
+  const textY   = (iconY + iconR + 44) * S;
+  const subY    = textY + 26*S;
+  const divY    = textY + 16*S;
+
+  return `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
+  ${gradDef}
+  <rect width="${W}" height="${H}" fill="${bg}"/>
+  ${iconEl}
+  ${deco}
+  <text x="${CX}" y="${CY}" font-size="${fontSize*S}" font-family="${font},sans-serif"
+        font-weight="900" text-anchor="middle" dominant-baseline="middle"
+        fill="${onPri}" letter-spacing="${lSpace*S}">${initials}</text>
+  <text x="${W/2}" y="${textY}" font-size="${26*S}" font-family="${font},sans-serif" font-weight="700"
+        text-anchor="middle" fill="${nameColor}" letter-spacing="${4*S}">${brandDisplay}</text>
+  <rect x="${(256-40)*S}" y="${divY}" width="${80*S}" height="${2.5*S}" fill="${accent}" rx="${1.25*S}"/>
+  ${industry ? `<text x="${W/2}" y="${subY}" font-size="${11*S}" font-family="Arial,sans-serif"
+        text-anchor="middle" fill="${accent}" letter-spacing="${3*S}" opacity="0.9">${industry}</text>` : ''}
+</svg>`;
+}
+
+function updatePreview() {
+  const frame = document.getElementById('canvas-frame');
+  if (!frame) return;
+  frame.innerHTML = buildLogoSVG(240, 240);
+}
+
+function downloadSVG() {
+  const svg  = buildLogoSVG(512, 512);
+  const blob = new Blob([svg], {type:'image/svg+xml'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = (document.getElementById('lg-brand')?.value || 'logo') + '.svg';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── 3. LOGO GENERATION (AI) ────────────────────────────────────────────────────
 async function genLogo() {
-  load('lg', true);
+  const loadEl = document.getElementById('canvas-loading');
+  if (loadEl) loadEl.style.display = 'flex';
+  let secs = 0;
+  const timerEl = document.getElementById('lg-timer');
+  const ticker  = setInterval(() => { secs++; if (timerEl) timerEl.textContent = `${secs}s`; }, 1000);
+
   try {
     const data = await api('/api/logo', {
-      brand_name: document.getElementById('lg-brand').value,
-      industry:   document.getElementById('lg-industry').value,
-      style:      document.getElementById('lg-style').value,
-      colors:     document.getElementById('lg-colors').value,
+      brand_name:    document.getElementById('lg-brand').value,
+      industry:      document.getElementById('lg-industry').value,
+      style:         LOGO.style,
+      primary_color: document.getElementById('lg-color-primary').value,
+      accent_color:  document.getElementById('lg-color-accent').value,
+      bg_color:      document.getElementById('lg-color-bg').value,
+      icon_shape:    LOGO.shape,
+      colors: '',
     });
-    const src = 'data:image/png;base64,' + data.image_base64;
-    document.getElementById('logo-frame').innerHTML = `<img src="${src}" alt="Generated Logo">`;
-    document.getElementById('logo-dl').href = src;
-    document.getElementById('logo-prompt-out').textContent = 'Prompt: ' + (data.prompt_used || '');
+    const mime       = data.mime_type || 'image/png';
+    const src        = `data:${mime};base64,` + data.image_base64;
+    const isFallback = data.mode === 'svg_fallback';
+    const modeLabel  = {pollinations:'🎨 Pollinations AI', flux:'⚡ FLUX.1', svg_fallback:'✏️ SVG Logo'}[data.mode] || data.mode;
+
+    document.getElementById('logo-frame').innerHTML   = `<img src="${src}" alt="Logo" style="width:100%;height:100%;object-fit:contain">`;
+    document.getElementById('logo-dl').href           = src;
+    document.getElementById('logo-dl').download       = isFallback ? 'logo.svg' : 'logo.png';
+    document.getElementById('logo-dl').textContent    = isFallback ? '⬇ Download SVG' : '⬇ Download PNG';
+    document.getElementById('logo-prompt-out').textContent = `[${modeLabel}] ${data.prompt_used || ''}`;
     show('lg');
-  } catch(e) { alert('Error: ' + e.message); }
-  finally { load('lg', false); }
+  } catch(e) { alert('Logo error: ' + e.message); }
+  finally {
+    clearInterval(ticker);
+    if (timerEl) timerEl.textContent = '';
+    if (loadEl) loadEl.style.display = 'none';
+  }
 }
 
 // ── 4. BRAND STORY ──────────────────────────────────────────────────────────
