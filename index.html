@@ -1122,6 +1122,48 @@ select {
   background: white;
 }
 
+/* ─── VARIATION CARDS ────────────────────────────────────────────────────── */
+.variation-card {
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+}
+.variation-card:hover {
+  border-color: var(--rust);
+  box-shadow: 0 6px 24px rgba(200,82,42,0.15);
+  transform: translateY(-3px);
+}
+.variation-card.selected {
+  border-color: var(--rust);
+  box-shadow: 0 0 0 3px rgba(200,82,42,0.15);
+}
+.variation-preview {
+  width: 100%; aspect-ratio: 1;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; background: #f8f8f8;
+}
+.variation-preview svg, .variation-preview img { width: 100%; height: 100%; display: block; }
+.variation-footer {
+  padding: 0.65rem 0.75rem;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.variation-label {
+  font-family: var(--mono); font-size: 0.6rem;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--ink-mid);
+}
+.variation-dl {
+  font-family: var(--mono); font-size: 0.58rem;
+  color: var(--rust); cursor: pointer; text-decoration: none;
+  padding: 3px 8px; border: 1px solid rgba(200,82,42,0.3);
+  border-radius: 4px; transition: all 0.15s;
+}
+.variation-dl:hover { background: var(--rust); color: white; }
+
 /* ─── COPY BUTTON ─────────────────────────────────────────────────────────── */
 .copy-floater {
   position: absolute;
@@ -1523,20 +1565,13 @@ select {
         </div><!-- /studio-controls -->
       </div><!-- /logo-studio -->
 
-      <!-- Result card (AI-generated image) -->
+      <!-- Result card — 3 AI Variations -->
       <div class="result-card" id="r-lg" style="margin-top:1.5rem">
-        <div class="result-label">AI-Generated Logo</div>
-        <div class="logo-output">
-          <div class="logo-frame" id="logo-frame">
-            <div class="logo-placeholder">
-              <span class="lp-icon">◉</span>
-              AI render will appear here
-            </div>
-          </div>
-          <div class="logo-info">
-            <div class="logo-prompt-used" id="logo-prompt-out">—</div>
-            <a id="logo-dl" class="btn btn-outline" download="logo.png">⬇ Download</a>
-          </div>
+        <div class="result-label">AI-Generated Variations</div>
+        <div id="variations-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-bottom:1.25rem"></div>
+        <div id="variation-rationale" style="display:none;background:var(--paper);border:1px solid var(--border);border-radius:8px;padding:1rem">
+          <div style="font-family:var(--mono);font-size:0.58rem;color:var(--rust);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.5rem">AI Design Notes</div>
+          <div id="rationale-text" style="font-size:0.82rem;line-height:1.7;color:var(--ink-mid)"></div>
         </div>
       </div>
     </div>
@@ -2216,16 +2251,30 @@ function buildLogoSVG(W, H) {
   const nameColor = bgLight ? primary : (onPri === '#ffffff' ? '#ffffff' : primary);
 
   // ─ Assemble SVG ───────────────────────────────────────────────────────────
-  const gradDef = useGrad ? `<defs>
+  // Glossy overlay: semi-transparent white radial at top-left of shape
+  const glossId  = 'gl' + gradId;
+  const glossOverlay = useGrad ? `
+  <radialGradient id="${glossId}" cx="35%" cy="28%" r="60%">
+    <stop offset="0%"   stop-color="#ffffff" stop-opacity="0.28"/>
+    <stop offset="55%"  stop-color="#ffffff" stop-opacity="0.06"/>
+    <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+  </radialGradient>` : '';
+
+  const gradDef = `<defs>
+    ${useGrad ? `
     <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%"   stop-color="${primary}"/>
-      <stop offset="100%" stop-color="${accent}" stop-opacity="0.85"/>
+      <stop offset="60%"  stop-color="${primary}" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="${accent}"/>
     </linearGradient>
-    <filter id="neon-glow"><feGaussianBlur stdDeviation="4" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-  </defs>` : `<defs>
-    <filter id="neon-glow"><feGaussianBlur stdDeviation="4" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    ${glossOverlay}` : ''}
+    <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft-shadow" x="-10%" y="-10%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="${4*S}" stdDeviation="${6*S}" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
   </defs>`;
 
   const brandDisplay = brand.toUpperCase().slice(0,16);
@@ -2236,7 +2285,11 @@ function buildLogoSVG(W, H) {
   return `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
   ${gradDef}
   <rect width="${W}" height="${H}" fill="${bg}"/>
+  <g filter="url(#soft-shadow)">
   ${iconEl}
+  </g>
+  ${useGrad ? `<!-- gloss overlay reuses same shape path as a clip -->
+  <g opacity="1">${iconEl.replace(new RegExp(`fill="[^"]*"`, 'g'), `fill="url(#${glossId})"`).replace(/stroke="[^"]*"/g,'stroke="none"').replace(/stroke-width="[^"]*"/g,'')}</g>` : ''}
   ${deco}
   <text x="${CX}" y="${CY}" font-size="${fontSize*S}" font-family="${font},sans-serif"
         font-weight="900" text-anchor="middle" dominant-baseline="middle"
@@ -2266,7 +2319,7 @@ function downloadSVG() {
   URL.revokeObjectURL(url);
 }
 
-// ── 3. LOGO GENERATION (AI) ────────────────────────────────────────────────────
+// ── AI LOGO — 3 VARIATIONS ────────────────────────────────────────────────────
 async function genLogo() {
   const loadEl = document.getElementById('canvas-loading');
   if (loadEl) loadEl.style.display = 'flex';
@@ -2274,34 +2327,211 @@ async function genLogo() {
   const timerEl = document.getElementById('lg-timer');
   const ticker  = setInterval(() => { secs++; if (timerEl) timerEl.textContent = `${secs}s`; }, 1000);
 
-  try {
-    const data = await api('/api/logo', {
-      brand_name:    document.getElementById('lg-brand').value,
-      industry:      document.getElementById('lg-industry').value,
-      style:         LOGO.style,
-      primary_color: document.getElementById('lg-color-primary').value,
-      accent_color:  document.getElementById('lg-color-accent').value,
-      bg_color:      document.getElementById('lg-color-bg').value,
-      icon_shape:    LOGO.shape,
-      colors: '',
-    });
-    const mime       = data.mime_type || 'image/png';
-    const src        = `data:${mime};base64,` + data.image_base64;
-    const isFallback = data.mode === 'svg_fallback';
-    const modeLabel  = {pollinations:'🎨 Pollinations AI', flux:'⚡ FLUX.1', svg_fallback:'✏️ SVG Logo'}[data.mode] || data.mode;
+  const brand    = document.getElementById('lg-brand').value   || 'Brand';
+  const industry = document.getElementById('lg-industry').value || '';
+  const primary  = document.getElementById('lg-color-primary').value;
+  const accent   = document.getElementById('lg-color-accent').value;
+  const bg       = document.getElementById('lg-color-bg').value;
+  const shape    = LOGO.shape;
+  const style    = LOGO.style;
+  const humanSVG = buildLogoSVG(512, 512);
 
-    document.getElementById('logo-frame').innerHTML   = `<img src="${src}" alt="Logo" style="width:100%;height:100%;object-fit:contain">`;
-    document.getElementById('logo-dl').href           = src;
-    document.getElementById('logo-dl').download       = isFallback ? 'logo.svg' : 'logo.png';
-    document.getElementById('logo-dl').textContent    = isFallback ? '⬇ Download SVG' : '⬇ Download PNG';
-    document.getElementById('logo-prompt-out').textContent = `[${modeLabel}] ${data.prompt_used || ''}`;
+  const prompt = `You are a professional brand identity designer.
+
+The user has designed this logo. You must treat their choices as the FOUNDATION — not suggestions to ignore.
+
+Their design:
+- Brand: "${brand}"
+- Industry: "${industry || 'General'}"
+- Shape: ${shape}  ← KEEP THIS in variations 1 and 2
+- Style: ${style}
+- Primary color: ${primary}  ← THIS IS THEIR BRAND COLOR — keep it dominant in ALL 3
+- Accent color: ${accent}   ← use this or a close complement
+- Background: ${bg}
+
+Create 3 variations that all feel like the SAME brand family — just different treatments.
+
+Variation 1 — "Refined Original":
+- SAME shape: ${shape}
+- SAME primary color: ${primary} (exact hex)
+- SAME accent: ${accent} (exact hex)  
+- Same background: ${bg}
+- Just refine the design — better proportions, cleaner spacing, add subtle inner detail or shadow, improve text placement. Make it more polished, not different.
+
+Variation 2 — "Tonal Shift":
+- SAME shape: ${shape}
+- KEEP primary ${primary} as the dominant color
+- Change only the accent to a complementary color (pick one that pairs well with ${primary})
+- Try a slightly different layout — maybe icon + text side by side instead of stacked, or adjust sizing
+- Still clearly the same brand
+
+Variation 3 — "Bold Direction":
+- You may change the shape (pick one that suits ${industry || 'the brand'} better than ${shape})
+- Keep ${primary} as the core brand color — you may darken/lighten it but don't abandon it
+- More dramatic — bolder weight, stronger contrast, more personality
+- Still recognisably the same brand identity
+
+Rules for ALL SVGs:
+- 512x512, self-contained, no external fonts
+- Use Arial Black, Georgia, Trebuchet MS, or Impact only
+- Must include the brand name "${brand}" as visible text
+- Use linearGradient and/or radialGradient for depth
+- Add a subtle drop shadow (feDropShadow) behind the main shape
+- Make them look genuinely professional
+
+Return ONLY this JSON (no markdown fences):
+{
+  "variations": [
+    {
+      "label": "Refined Original",
+      "svg": "<complete 512x512 SVG>",
+      "description": "one sentence on what was refined"
+    },
+    {
+      "label": "Tonal Shift",
+      "svg": "<complete 512x512 SVG>",
+      "description": "one sentence on what changed"
+    },
+    {
+      "label": "Bold Direction",
+      "svg": "<complete 512x512 SVG>",
+      "description": "one sentence on the new direction"
+    }
+  ],
+  "tagline": "a short punchy tagline for ${brand} in ${industry || 'this industry'}"
+}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 8000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data    = await res.json();
+    const rawText = data.content?.map(c => c.text || '').join('') || '';
+    const clean   = rawText.replace(/```json|```/g, '').trim();
+
+    let parsed;
+    try {
+      const s = clean.indexOf('{'), e = clean.lastIndexOf('}') + 1;
+      parsed = JSON.parse(clean.slice(s, e));
+    } catch(pe) {
+      throw new Error('Could not parse AI response');
+    }
+
+    const variations = parsed.variations || [];
+    if (!variations.length) throw new Error('No variations returned');
+
+    // Render the 3 variation cards
+    const grid = document.getElementById('variations-grid');
+    grid.innerHTML = variations.map((v, i) => {
+      const b64 = btoa(unescape(encodeURIComponent(v.svg || humanSVG)));
+      const dlName = `${brand.toLowerCase().replace(/\s+/g,'-')}-v${i+1}.svg`;
+      return `
+        <div class="variation-card" id="var-card-${i}" onclick="selectVariation(${i})">
+          <div class="variation-preview">
+            <img src="data:image/svg+xml;base64,${b64}" alt="${v.label}">
+          </div>
+          <div class="variation-footer">
+            <span class="variation-label">${v.label || 'Variation '+(i+1)}</span>
+            <a class="variation-dl" href="data:image/svg+xml;base64,${b64}"
+               download="${dlName}" onclick="event.stopPropagation()">↓ SVG</a>
+          </div>
+        </div>`;
+    }).join('');
+
+    // Store SVGs for selection
+    window._variations = variations.map((v, i) => ({
+      ...v,
+      b64: btoa(unescape(encodeURIComponent(v.svg || humanSVG))),
+      dlName: `${brand.toLowerCase().replace(/\s+/g,'-')}-v${i+1}.svg`
+    }));
+
+    // Show rationale with tagline
+    const rationale = document.getElementById('variation-rationale');
+    const rationaleText = document.getElementById('rationale-text');
+    rationale.style.display = 'block';
+    rationaleText.innerHTML = variations.map((v,i) =>
+      `<div style="margin-bottom:0.4rem"><span style="font-family:var(--mono);font-size:0.6rem;color:var(--rust)">${v.label}</span> — ${v.description || ''}</div>`
+    ).join('') + (parsed.tagline ? `<div style="margin-top:0.75rem;font-family:'DM Serif Display',serif;font-style:italic;font-size:1rem;color:var(--rust)">"${parsed.tagline}"</div>` : '');
+
     show('lg');
-  } catch(e) { alert('Logo error: ' + e.message); }
-  finally {
+
+  } catch(e) {
+    // Fallback: show 3 client-side generated variations using the SVG builder
+    const fallbackVariations = generateFallbackVariations(brand, industry, shape, style, primary, accent, bg);
+    const grid = document.getElementById('variations-grid');
+    grid.innerHTML = fallbackVariations.map((v, i) => {
+      const b64 = btoa(unescape(encodeURIComponent(v.svg)));
+      return `
+        <div class="variation-card" id="var-card-${i}">
+          <div class="variation-preview">
+            <img src="data:image/svg+xml;base64,${b64}" alt="${v.label}">
+          </div>
+          <div class="variation-footer">
+            <span class="variation-label">${v.label}</span>
+            <a class="variation-dl" href="data:image/svg+xml;base64,${b64}"
+               download="${brand.toLowerCase()}-v${i+1}.svg" onclick="event.stopPropagation()">↓ SVG</a>
+          </div>
+        </div>`;
+    }).join('');
+    document.getElementById('variation-rationale').style.display = 'block';
+    document.getElementById('rationale-text').textContent = `AI unavailable — showing 3 local variations with different color palettes. (${e.message})`;
+    show('lg');
+  } finally {
     clearInterval(ticker);
     if (timerEl) timerEl.textContent = '';
     if (loadEl) loadEl.style.display = 'none';
   }
+}
+
+function selectVariation(i) {
+  document.querySelectorAll('.variation-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('var-card-' + i)?.classList.add('selected');
+}
+
+// Fallback: generate 3 local SVG variations derived from user's own colors
+function generateFallbackVariations(brand, industry, shape, style, primary, accent, bg) {
+  function lighten(hex, amt=60) {
+    const h = hex.replace('#','');
+    const r = Math.min(parseInt(h.slice(0,2),16)+amt, 255);
+    const g = Math.min(parseInt(h.slice(2,4),16)+amt, 255);
+    const b2 = Math.min(parseInt(h.slice(4,6),16)+amt, 255);
+    return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b2.toString(16).padStart(2,'0')}`;
+  }
+  function darken(hex, f=0.6) {
+    const h = hex.replace('#','');
+    const r = Math.floor(parseInt(h.slice(0,2),16)*f);
+    const g = Math.floor(parseInt(h.slice(2,4),16)*f);
+    const b2 = Math.floor(parseInt(h.slice(4,6),16)*f);
+    return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b2.toString(16).padStart(2,'0')}`;
+  }
+  const altShape = {circle:'hexagon',hexagon:'diamond',diamond:'shield',square:'circle',
+    triangle:'hexagon',shield:'diamond',star:'circle',pill:'square',arch:'hexagon',cross:'circle'}[shape] || 'hexagon';
+
+  const variants = [
+    { label:'Refined Original', shape, style,        p:primary,        a:accent,          b:bg,               gradient:true  },
+    { label:'Tonal Shift',      shape, style,        p:primary,        a:lighten(accent), b:darken(bg, 0.92), gradient:true  },
+    { label:'Bold Direction',   shape:altShape, style:'bold', p:darken(primary), a:accent, b:bg,              gradient:false },
+  ];
+  return variants.map(opt => {
+    const savedShape = LOGO.shape, savedStyle = LOGO.style, savedGrad = LOGO.gradient;
+    LOGO.shape = opt.shape; LOGO.style = opt.style; LOGO.gradient = opt.gradient;
+    document.getElementById('lg-color-primary').value = opt.p;
+    document.getElementById('lg-color-accent').value  = opt.a;
+    document.getElementById('lg-color-bg').value      = opt.b;
+    const svg = buildLogoSVG(512, 512);
+    LOGO.shape = savedShape; LOGO.style = savedStyle; LOGO.gradient = savedGrad;
+    document.getElementById('lg-color-primary').value = primary;
+    document.getElementById('lg-color-accent').value  = accent;
+    document.getElementById('lg-color-bg').value      = bg;
+    return { label: opt.label, svg };
+  });
 }
 
 // ── 4. BRAND STORY ──────────────────────────────────────────────────────────
