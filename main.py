@@ -390,8 +390,26 @@ def build_svg_logo(brand_name, industry, style, colors,
 
     text_color = primary if bg != primary else accent
     return f"""<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="pri_grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="{primary}"/>
+      <stop offset="60%"  stop-color="{primary}" stop-opacity="0.92"/>
+      <stop offset="100%" stop-color="{accent}"/>
+    </linearGradient>
+    <radialGradient id="gloss" cx="35%" cy="28%" r="60%">
+      <stop offset="0%"   stop-color="#ffffff" stop-opacity="0.28"/>
+      <stop offset="55%"  stop-color="#ffffff" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft-shadow" x="-10%" y="-10%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.22"/>
+    </filter>
+  </defs>
   <rect width="512" height="512" fill="{bg}"/>
+  <g filter="url(#soft-shadow)">
   {icon_svg}
+  </g>
+  {icon_svg.replace(f'fill="{primary}"', 'fill="url(#gloss)"').replace(f'stroke="{accent}"','stroke="none"').replace('stroke-width="3"','').replace('stroke-width="3.5"','').replace('stroke-width="2.5"','')}
   {deco}
   <text x="{CX}" y="{text_y}" font-size="88" font-family="Arial Black,Arial"
         font-weight="900" text-anchor="middle" dominant-baseline="middle"
@@ -646,6 +664,202 @@ Give specific, actionable, expert-level branding advice.
         model_used = "groq/llama-3.3-70b-versatile (fallback)"
 
     return {"response": response, "model": model_used}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PITCH DECK
+# ─────────────────────────────────────────────────────────────────────────────
+class PitchDeckRequest(BaseModel):
+    brand_name:  str
+    brand_story: str
+    industry:    Optional[str] = ""
+    audience:    Optional[str] = ""
+    tone:        Optional[str] = "modern"
+    problem:     Optional[str] = ""
+    solution:    Optional[str] = ""
+    product:     Optional[str] = ""
+    marketing:   Optional[str] = ""
+    vision:      Optional[str] = ""
+    tagline:     Optional[str] = ""
+
+class PitchPreviewRequest(BaseModel):
+    brand_name:  str
+    brand_story: str
+    industry:    Optional[str] = ""
+    audience:    Optional[str] = ""
+    tone:        Optional[str] = "modern"
+    tagline:     Optional[str] = ""
+
+class PitchBuildRequest(BaseModel):
+    brand_name:  str
+    brand_story: str
+    industry:    Optional[str] = ""
+    audience:    Optional[str] = ""
+    tone:        Optional[str] = "modern"
+    problem:     Optional[str] = ""
+    solution:    Optional[str] = ""
+    product:     Optional[str] = ""
+    marketing:   Optional[str] = ""
+    vision:      Optional[str] = ""
+    tagline:     Optional[str] = ""
+    primary:     Optional[str] = ""
+    secondary:   Optional[str] = ""
+    accent:      Optional[str] = ""
+    bg_dark:     Optional[str] = ""
+    bg_light:    Optional[str] = ""
+    font_heading:Optional[str] = ""
+    font_body:   Optional[str] = ""
+    ai_primary:  Optional[str] = ""
+    ai_accent:   Optional[str] = ""
+
+
+def _industry_palette_map(industry: str) -> dict:
+    k = (industry or "").lower()
+    if any(x in k for x in ["fashion","luxury","beauty","jewel"]):
+        return {"mood":"neutral dark with gold or rose accent","good_accents":["B5924C","C9A96E","E8D5B7","2D2D2D","1C1C1C"],"avoid":"neon or overly bright colors"}
+    if any(x in k for x in ["food","restaurant","bakery","cafe"]):
+        return {"mood":"warm earthy — terracotta, cream, olive, deep red","good_accents":["C8522A","8B3A2A","D4A853","4A5C3E","F5E6D3"],"avoid":"cold blues or grays"}
+    if any(x in k for x in ["tech","saas","software","app","fintech","ai","data"]):
+        return {"mood":"dark backgrounds with electric accent — navy, midnight + electric blue","good_accents":["4F8EF7","00D4AA","7B5EA7","1A2E4A","0A0F1C"],"avoid":"warm oranges or traditional serifs"}
+    if any(x in k for x in ["health","medical","wellness","care","clinic"]):
+        return {"mood":"clean whites and light blues — mint, sage, sky blue","good_accents":["4A9B8F","5B8DB8","7EC8C8","FFFFFF","F0F8FF"],"avoid":"dark heavy backgrounds"}
+    if any(x in k for x in ["sustain","eco","green","organic","nature","environment"]):
+        return {"mood":"earthy naturals — forest green, sand, terracotta","good_accents":["3D6B4F","7A9E5C","C4955A","F5F0E0","2C4A3E"],"avoid":"neon or synthetic-looking colors"}
+    if any(x in k for x in ["education","school","learn","academy"]):
+        return {"mood":"bright accessible — navy, yellow, white with energetic accent","good_accents":["1A3A6B","F5C842","4CAF82","FFFFFF","2D6DB5"],"avoid":"overly dark or muted tones"}
+    return {"mood":"professional and brand-appropriate","good_accents":["1C1C1C","B5924C","F5EFE6","2D4A8A","C8522A"],"avoid":"clashing color combinations"}
+
+
+def _check_palette_fit(user_color: str, industry: str, role: str) -> str:
+    import colorsys
+    try:
+        r = int(user_color[0:2], 16) / 255
+        g = int(user_color[2:4], 16) / 255
+        b = int(user_color[4:6], 16) / 255
+        h, s, v = colorsys.rgb_to_hsv(r, g, b)
+        hue_deg = h * 360
+    except Exception:
+        return ""
+    k = (industry or "").lower()
+    warns = []
+    if any(x in k for x in ["food","restaurant","bakery","cafe"]) and role == "accent":
+        if 180 <= hue_deg <= 270 and s > 0.3:
+            warns.append(f"Cold blue/purple accents (#{user_color}) can suppress appetite. Consider warm terracotta or amber instead.")
+    if any(x in k for x in ["tech","saas","software","fintech","ai"]) and role == "primary":
+        if 20 <= hue_deg <= 60 and s > 0.4:
+            warns.append(f"Warm yellow/orange primaries (#{user_color}) can feel less credible for tech. Deep navy or slate works better.")
+    if any(x in k for x in ["fashion","luxury","beauty"]) and s > 0.85 and v > 0.8:
+        warns.append(f"Highly saturated neons (#{user_color}) undermine luxury brand perception. Consider muted, sophisticated alternatives.")
+    if any(x in k for x in ["health","medical","wellness"]) and role in ["primary","bg_dark"] and v < 0.25:
+        warns.append(f"Very dark colors (#{user_color}) in healthcare feel heavy. Light, airy palettes build more trust.")
+    return " ".join(warns)
+
+
+@app.post("/api/pitch-preview")
+async def pitch_preview(req: PitchPreviewRequest):
+    """Step 1: Generate AI palette for approval — no PPTX yet."""
+    system = "You are a brand strategist. Return ONLY valid JSON."
+    user = f"""Generate brand colors and typography for a pitch deck.
+
+Brand: {req.brand_name}  |  Industry: {req.industry}
+Story: {req.brand_story}  |  Audience: {req.audience}  |  Tone: {req.tone}
+
+Return ONLY this JSON:
+{{
+  "tagline": "short memorable tagline",
+  "primary":   "hex without #",
+  "secondary": "hex without #",
+  "accent":    "hex without #",
+  "bg_dark":   "hex without #",
+  "bg_light":  "hex without #",
+  "font_heading": "Georgia or Palatino or Arial Black",
+  "font_body":    "Calibri or Arial or Garamond",
+  "palette_reasoning": "2 sentences explaining why these colors suit this brand"
+}}"""
+    ai_raw = await call_groq(system, user, temperature=0.5)
+    theme  = safe_json(ai_raw, {})
+    return {"theme": theme, "industry_guidance": _industry_palette_map(req.industry), "brand_name": req.brand_name}
+
+
+@app.post("/api/pitch-check-palette")
+async def pitch_check_palette(body: dict):
+    """Check user palette against industry norms and return AI recommendations."""
+    industry = body.get("industry", "")
+    checks = {}
+    for role in ["primary", "accent", "secondary"]:
+        val = (body.get(role) or "").replace("#","").strip()
+        if len(val) == 6:
+            msg = _check_palette_fit(val, industry, role)
+            if msg:
+                checks[role] = msg
+    palette_guide = _industry_palette_map(industry)
+    colors_desc = ", ".join([f"{r}: #{body.get(r,'')}" for r in ["primary","secondary","accent","bg_dark","bg_light"] if body.get(r)])
+    system = "You are a brand color consultant. Be direct and helpful. Under 120 words."
+    user_msg = f"""A {industry} brand wants: {colors_desc}.
+Issues: {checks if checks else "none obvious"}.
+Industry best practice: {palette_guide["mood"]}. Avoid: {palette_guide["avoid"]}.
+Give a short friendly assessment: what works, what to reconsider, suggest 1-2 alternative hex codes if needed."""
+    ai_advice = await call_groq(system, user_msg, temperature=0.4)
+    return {"warnings": checks, "advice": ai_advice, "industry_guidance": palette_guide, "palette_ok": len(checks) == 0}
+
+
+@app.post("/api/pitch-deck")
+async def generate_pitch_deck(req: PitchBuildRequest):
+    import subprocess, json as json_lib, os
+
+    system = "You are a brand strategist. Return ONLY valid JSON."
+    user = f"""Fill missing content for a pitch deck.
+Brand: {req.brand_name}  |  Industry: {req.industry}  |  Tone: {req.tone}
+Story: {req.brand_story}  |  Audience: {req.audience}
+Problem: {req.problem or "(derive)"}  |  Solution: {req.solution or "(derive)"}
+Product: {req.product or "(derive)"}  |  Marketing: {req.marketing or "(derive)"}
+Vision: {req.vision or "(derive)"}  |  Tagline: {req.tagline or "(generate)"}
+
+Return ONLY this JSON:
+{{
+  "tagline":"tagline","primary":"hex","secondary":"hex","accent":"hex","bg_dark":"hex","bg_light":"hex",
+  "font_heading":"Georgia or Palatino","font_body":"Calibri or Arial",
+  "story":"2-3 sentences","problem":"3 problems newline-separated",
+  "solution":"2-3 sentences","product":"2-3 sentences","marketing":"2-3 sentences","vision":"2-3 sentences"
+}}"""
+    ai_raw = await call_groq(system, user, temperature=0.55)
+    theme  = safe_json(ai_raw, {})
+
+    def pick(uval, akey, fallback):
+        v = (uval or "").replace("#","").strip()
+        return v if len(v) == 6 else theme.get(akey, fallback)
+
+    deck_data = {
+        "brand_name":   req.brand_name,
+        "industry":     req.industry,
+        "audience":     req.audience,
+        "tone":         req.tone,
+        "tagline":      req.tagline or theme.get("tagline",""),
+        "primary":      pick(req.primary,   "primary",   "1a1628"),
+        "secondary":    pick(req.secondary, "secondary", "f5f0e8"),
+        "accent":       pick(req.accent,    "accent",    "c8522a"),
+        "bg_dark":      pick(req.bg_dark,   "bg_dark",   "0f0f1a"),
+        "bg_light":     pick(req.bg_light,  "bg_light",  "faf8f4"),
+        "font_heading": req.font_heading or theme.get("font_heading","Georgia"),
+        "font_body":    req.font_body    or theme.get("font_body","Calibri"),
+        "story":        req.brand_story  or theme.get("story",""),
+        "problem":      req.problem      or theme.get("problem",""),
+        "solution":     req.solution     or theme.get("solution",""),
+        "product":      req.product      or theme.get("product",""),
+        "marketing":    req.marketing    or theme.get("marketing",""),
+        "vision":       req.vision       or theme.get("vision",""),
+    }
+
+    script_path = os.path.join(os.path.dirname(__file__), "generate_deck.js")
+    result = subprocess.run(["node", script_path, json_lib.dumps(deck_data)], capture_output=True, text=True, timeout=90)
+    if result.returncode != 0:
+        raise HTTPException(status_code=500, detail=f"PPTX generation failed: {result.stderr[:400]}")
+
+    return {
+        "pptx_base64": result.stdout.strip(),
+        "theme": {k: deck_data[k] for k in ["primary","secondary","accent","bg_dark","bg_light","font_heading","font_body","tagline","tone"]},
+        "brand_name": req.brand_name
+    }
 
 
 if __name__ == "__main__":
