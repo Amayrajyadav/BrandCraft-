@@ -61,32 +61,129 @@ function getInd() {
 const IND_CFG = getInd();
 
 /* ─── IMAGE FETCH ─────────────────────────────────────────────────────────── */
-function fetchImg(query, w=1280, h=720) {
-  const url = `https://source.unsplash.com/featured/${w}x${h}/?${encodeURIComponent(query)}&t=${Date.now()}`;
+// Priority order:
+//   1. NVIDIA FLUX.1-dev (via NVIDIA NIM API — high quality)
+//   2. Pollinations.ai   (free, no key, reliable FLUX)
+//   3. Unsplash source   (real photography fallback)
+//   4. null              (layout renders color panels instead)
+
+const NVIDIA_API_KEY  = process.env.NVIDIA_API_KEY  || "";
+const NVIDIA_FLUX_URL = "https://integrate.api.nvidia.com/v1/images/generations";
+const NVIDIA_FLUX_MDL = "black-forest-labs/flux.1-dev";
+
+function httpGet(url, opts={}) {
   return new Promise(resolve => {
     function get(u, depth=0) {
       if (depth > 5) return resolve(null);
       const mod = u.startsWith("https") ? https : http;
-      mod.get(u, { headers:{"User-Agent":"Mozilla/5.0"}, timeout:15000 }, res => {
+      const req = mod.get(u, { headers: opts.headers||{"User-Agent":"Mozilla/5.0"}, timeout: opts.timeout||20000 }, res => {
         if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
           return get(res.headers.location, depth+1);
         }
         if (res.statusCode !== 200) return resolve(null);
         const chunks = [];
         res.on("data", c => chunks.push(c));
-        res.on("end", () => {
-          const ct = res.headers["content-type"] || "image/jpeg";
-          resolve(`${ct};base64,${Buffer.concat(chunks).toString("base64")}`);
-        });
+        res.on("end", () => resolve(Buffer.concat(chunks)));
         res.on("error", () => resolve(null));
-      }).on("error", () => resolve(null)).on("timeout", () => resolve(null));
+      });
+      req.on("error", () => resolve(null));
+      req.on("timeout", () => { req.destroy(); resolve(null); });
     }
     get(url);
   });
 }
 
+function httpPost(url, headers, body) {
+  return new Promise(resolve => {
+    const bodyStr = JSON.stringify(body);
+    const u = new URL(url);
+    const opts = {
+      hostname: u.hostname, port: 443, path: u.pathname + u.search,
+      method: "POST",
+      headers: { ...headers, "Content-Type": "application/json", "Content-Length": Buffer.byteLength(bodyStr) },
+      timeout: 90000,
+    };
+    const req = https.request(opts, res => {
+      const chunks = [];
+      res.on("data", c => chunks.push(c));
+      res.on("end", () => {
+        const buf = Buffer.concat(chunks);
+        resolve({ status: res.statusCode, headers: res.headers, body: buf });
+      });
+    });
+    req.on("error", () => resolve(null));
+    req.on("timeout", () => { req.destroy(); resolve(null); });
+    req.write(bodyStr);
+    req.end();
+  });
+}
+
+async function fetchImgNvidia(prompt) {
+  if (!NVIDIA_API_KEY) return null;
+  try {
+    const res = await httpPost(NVIDIA_FLUX_URL, { "Authorization": `Bearer ${NVIDIA_API_KEY}`, "Accept": "image/png, application/json" }, {
+      model: NVIDIA_FLUX_MDL, prompt, n: 1, size: "1024x1024",
+    });
+    if (!res || res.status !== 200) return null;
+    const ct = res.headers["content-type"] || "";
+    // Raw PNG bytes
+    if (ct.includes("image") && res.body.length > 3000) {
+      return `image/png;base64,${res.body.toString("base64")}`;
+    }
+    // JSON with b64_json or url
+    try {
+      const json = JSON.parse(res.body.toString());
+      const item = (json.data||[])[0] || {};
+      if (item.b64_json) return `image/png;base64,${item.b64_json}`;
+      if (item.url) {
+        const imgBuf = await httpGet(item.url);
+        if (imgBuf && imgBuf.length > 3000) return `image/png;base64,${imgBuf.toString("base64")}`;
+      }
+    } catch(e) {}
+  } catch(e) {}
+  return null;
+}
+
+async function fetchImgPollinations(prompt) {
+  try {
+    const enc = encodeURIComponent(prompt);
+    const url = `https://image.pollinations.ai/prompt/${enc}?width=1280&height=720&nologo=true&model=flux&seed=${Math.floor(Math.random()*9999)}`;
+    const buf = await httpGet(url, { timeout: 30000 });
+    if (buf && buf.length > 3000) return `image/jpeg;base64,${buf.toString("base64")}`;
+  } catch(e) {}
+  return null;
+}
+
+async function fetchImgUnsplash(query) {
+  try {
+    const url = `https://source.unsplash.com/featured/1280x720/?${encodeURIComponent(query)}&t=${Date.now()}`;
+    const buf = await httpGet(url, { timeout: 15000 });
+    if (buf && buf.length > 3000) return `image/jpeg;base64,${buf.toString("base64")}`;
+  } catch(e) {}
+  return null;
+}
+
+async function fetchImg(query) {
+  // 1. Try NVIDIA FLUX — cinematic quality, matches brand aesthetic
+  const nvPrompt = `${query}, professional photography, cinematic lighting, high resolution, editorial quality, brand imagery`;
+  const nv = await fetchImgNvidia(nvPrompt);
+  if (nv) return nv;
+
+  // 2. Try Pollinations — free FLUX, good quality
+  const po = await fetchImgPollinations(query);
+  if (po) return po;
+
+  // 3. Try Unsplash — real photography
+  const un = await fetchImgUnsplash(query);
+  if (un) return un;
+
+  return null;
+}
+
 async function fetchAll() {
-  const [img1, img2, img3] = await Promise.all(IND_CFG.imgs.map(q => fetchImg(q)));
+  // Fetch 3 images in parallel, enriched with brand context for better composition.
+  const enriched = IND_CFG.imgs.map(q => `${brand_name} ${industry} ${q}, ${IND_CFG.vibe}, ${tone} brand campaign`);
+  const [img1, img2, img3] = await Promise.all(enriched.map(q => fetchImg(q)));
   return { img1: img1||null, img2: img2||null, img3: img3||null };
 }
 
@@ -107,9 +204,44 @@ function mkVLine(sl, x, y, h, color) {
   const col = fix(color||AC);
   sl.addShape(pres.shapes.RECTANGLE, { x, y, w:0.014, h, fill:{color:col}, line:{color:col,width:0} });
 }
+function mkImgFallback(sl, x, y, w, h, label) {
+  // Designed fallback so decks still look polished when remote image APIs fail.
+  mkRect(sl, x, y, w, h, BD);
+  mkRect(sl, x, y, w, h, P, 38);
+
+  mkRect(sl, x + w*0.05, y + h*0.08, w*0.9, h*0.18, AC, 78);
+  mkRect(sl, x + w*0.12, y + h*0.33, w*0.74, h*0.16, S, 84);
+  mkRect(sl, x + w*0.2, y + h*0.58, w*0.66, h*0.14, AC, 88);
+
+  sl.addShape(pres.shapes.OVAL, {
+    x: x + w*0.67,
+    y: y + h*0.18,
+    w: w*0.2,
+    h: h*0.36,
+    fill: { color: fix(AC), transparency: 72 },
+    line: { color: fix(AC), width: 0.8 },
+  });
+
+  mkLine(sl, x + w*0.08, y + h*0.86, w*0.5, AC);
+  sl.addText((label || `${brand_name} visual`).toUpperCase(), {
+    x: x + w*0.08,
+    y: y + h*0.88,
+    w: w*0.84,
+    h: h*0.09,
+    fontSize: 8,
+    fontFace: font_body,
+    color: fix(S),
+    charSpacing: 2,
+    margin: 0,
+  });
+}
 function mkImg(sl, data, x, y, w, h) {
-  if (!data) { mkRect(sl,x,y,w,h,P,0); return; }
-  try { sl.addImage({ data, x, y, w, h, sizing:{type:"cover",w,h} }); } catch(e) { mkRect(sl,x,y,w,h,P,0); }
+  if (!data) { mkImgFallback(sl, x, y, w, h, `${industry || "brand"} scene`); return; }
+  try {
+    sl.addImage({ data, x, y, w, h, sizing:{type:"cover",w,h} });
+  } catch(e) {
+    mkImgFallback(sl, x, y, w, h, `${industry || "brand"} scene`);
+  }
 }
 function mkEyebrow(sl, text, x, y, w, color) {
   sl.addText(text.toUpperCase(), { x, y, w:w||8, h:0.22, fontSize:7, fontFace:font_body, color:fix(color||AC), charSpacing:5, align:"left", margin:0 });

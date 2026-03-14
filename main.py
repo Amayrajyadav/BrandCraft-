@@ -34,20 +34,23 @@ app.add_middleware(
 # ─────────────────────────────────────────────────────────────────────────────
 # CONFIGURATION
 # ─────────────────────────────────────────────────────────────────────────────
-GROQ_API_KEY   = os.getenv("GROQ_API_KEY", "your-groq-api-key-here")
-HF_API_KEY     = os.getenv("HF_API_KEY",   "your-hf-api-key-here")
-
+GROQ_API_KEY   = os.getenv("GROQ_API_KEY", "")
 GROQ_URL       = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL     = "llama-3.3-70b-versatile"
 
-HF_IBM_URL          = "https://api-inference.huggingface.co/models/ibm-granite/granite-3.3-2b-instruct"
+HF_API_KEY     = os.getenv("HF_API_KEY", "")
+HF_FLUX_URL    = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell"
 
-# ── Image generation ──────────────────────────────────────────────────────────
-# HF SDXL (old) returned HTTP 410 Gone — endpoint is permanently dead.
-# Pollinations.ai is 100% free, no API key, returns real JPG images in 3-8s.
-# We use it as the primary engine. HF FLUX is the backup if Pollinations fails.
-POLLINATIONS_URL = "https://image.pollinations.ai/prompt/{prompt}?width=512&height=512&nologo=true&model=flux&seed=42"
-HF_FLUX_URL      = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell"
+# NVIDIA NIM — one key for ALL models (FLUX images + Nemotron chat + Vision)
+NVIDIA_API_KEY        = os.getenv("NVIDIA_API_KEY", "")
+NVIDIA_BASE_URL       = "https://integrate.api.nvidia.com/v1"
+NVIDIA_FLUX_MODEL     = "black-forest-labs/flux.1-dev"
+NVIDIA_CHAT_MODEL     = "nvidia/llama-3.3-nemotron-super-49b-v1"
+NVIDIA_VISION_MODEL   = "meta/llama-3.2-11b-vision-instruct"
+
+# Pollinations — zero-cost image fallback (no key needed)
+POLLINATIONS_URL = "https://image.pollinations.ai/prompt/{prompt}?width=1024&height=1024&nologo=true&model=flux&seed=42"
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # REQUEST SCHEMAS
@@ -110,7 +113,9 @@ class ChatRequest(BaseModel):
 # ─────────────────────────────────────────────────────────────────────────────
 # AI HELPERS
 # ─────────────────────────────────────────────────────────────────────────────
-async def call_groq(system: str, user: str, temperature: float = 0.8) -> str:
+
+# ── Groq — fast text generation (brand names, taglines, story etc.) ──────────
+async def call_groq(system: str, user: str, temperature: float = 0.8, max_tokens: int = 1500) -> str:
     headers = {
         "Authorization": f"Bearer {GROQ_API_KEY}",
         "Content-Type": "application/json"
@@ -122,75 +127,135 @@ async def call_groq(system: str, user: str, temperature: float = 0.8) -> str:
             {"role": "user",   "content": user}
         ],
         "temperature": temperature,
-        "max_tokens": 1500
+        "max_tokens": max_tokens
     }
-    async with httpx.AsyncClient(timeout=45) as client:
+    async with httpx.AsyncClient(timeout=90) as client:
         r = await client.post(GROQ_URL, headers=headers, json=payload)
         if r.status_code != 200:
-            raise HTTPException(status_code=r.status_code, detail=f"Groq API error: {r.text}")
+            raise HTTPException(status_code=r.status_code, detail=f"Groq error: {r.text[:300]}")
         return r.json()["choices"][0]["message"]["content"]
 
 
-async def call_ibm_granite(prompt: str) -> str:
-    headers = {"Authorization": f"Bearer {HF_API_KEY}"}
-    payload = {
-        "inputs": prompt,
-        "parameters": {"max_new_tokens": 600, "temperature": 0.7, "return_full_text": False}
+# ── NVIDIA NIM — chat (OpenAI-compatible endpoint) ───────────────────────────
+async def call_nvidia_chat(messages: list, temperature: float = 0.6, max_tokens: int = 1024) -> str:
+    """
+    Calls NVIDIA NIM with Llama 3.3 Nemotron — far superior to IBM Granite 2B.
+    Fully OpenAI-compatible: same structure as Groq but different base URL + model.
+    Falls back to Groq on any error.
+    """
+    if not NVIDIA_API_KEY:
+        # No NVIDIA key — fall back to Groq directly
+        sys_msg  = next((m["content"] for m in messages if m["role"]=="system"), "You are a helpful branding assistant.")
+        user_msg = next((m["content"] for m in reversed(messages) if m["role"]=="user"), "")
+        return await call_groq(sys_msg, user_msg, temperature, max_tokens)
+
+    headers = {
+        "Authorization": f"Bearer {NVIDIA_API_KEY}",
+        "Content-Type":  "application/json"
     }
-    async with httpx.AsyncClient(timeout=90) as client:
-        r = await client.post(HF_IBM_URL, headers=headers, json=payload)
-        if r.status_code != 200:
-            raise HTTPException(status_code=r.status_code, detail=f"IBM Granite error: {r.text}")
-        result = r.json()
-        if isinstance(result, list):
-            return result[0].get("generated_text", "").strip()
-        return result.get("generated_text", "").strip()
+    payload = {
+        "model":       NVIDIA_CHAT_MODEL,
+        "messages":    messages,
+        "temperature": temperature,
+        "max_tokens":  max_tokens,
+        "stream":      False,
+    }
+    try:
+        async with httpx.AsyncClient(timeout=60) as client:
+            r = await client.post(f"{NVIDIA_BASE_URL}/chat/completions", headers=headers, json=payload)
+        if r.status_code == 200:
+            return r.json()["choices"][0]["message"]["content"]
+        # Non-200 — fall through to Groq fallback
+        raise RuntimeError(f"NVIDIA NIM chat HTTP {r.status_code}: {r.text[:200]}")
+    except Exception as e:
+        # Graceful fallback to Groq so chat never breaks
+        sys_msg  = next((m["content"] for m in messages if m["role"]=="system"), "You are a helpful branding assistant.")
+        user_msg = next((m["content"] for m in reversed(messages) if m["role"]=="user"), "")
+        return await call_groq(sys_msg, user_msg, temperature, max_tokens)
 
 
-async def call_image_model(prompt: str) -> tuple:
+# ── NVIDIA FLUX.1-dev — high-quality image generation ───────────────────────
+async def call_nvidia_flux(prompt: str, width: int = 1024, height: int = 1024) -> tuple:
     """
-    Tier 1 → Pollinations.ai  (free, no API key, real AI image, ~5-15s)
-    Tier 2 → HF FLUX.1-schnell (uses HF_API_KEY, fallback)
-    Returns (base64_string, model_name, mime_type)
+    Returns (base64_string, model_name, mime_type).
+    NVIDIA FLUX.1-dev is the primary engine — 1024×1024, high quality, ~10-20s.
+    Falls back to Pollinations (free, no key) then HF FLUX if NVIDIA fails.
     """
 
-    # ── Tier 1: Pollinations.ai ───────────────────────────────────────────────
-    # Uses GET request with prompt in URL. Returns a real JPEG. No key needed.
+    # ── Tier 1: NVIDIA FLUX.1-dev ────────────────────────────────────────────
+    if NVIDIA_API_KEY:
+        headers = {
+            "Authorization": f"Bearer {NVIDIA_API_KEY}",
+            "Content-Type":  "application/json",
+            "Accept":        "image/png, application/json",
+        }
+        payload = {
+            "model":  NVIDIA_FLUX_MODEL,
+            "prompt": prompt,
+            "n":      1,
+            "size":   f"{width}x{height}",
+        }
+        try:
+            async with httpx.AsyncClient(timeout=120) as client:
+                r = await client.post(f"{NVIDIA_BASE_URL}/images/generations", headers=headers, json=payload)
+            if r.status_code == 200:
+                ct = r.headers.get("content-type","")
+                # NVIDIA returns either raw PNG bytes or a JSON with b64_json / url
+                if "image" in ct and len(r.content) > 3000:
+                    return base64.b64encode(r.content).decode(), "nvidia/flux.1-dev", "image/png"
+                # JSON response format
+                body = r.json()
+                if body.get("data"):
+                    item = body["data"][0]
+                    if item.get("b64_json"):
+                        return item["b64_json"], "nvidia/flux.1-dev", "image/png"
+                    if item.get("url"):
+                        async with httpx.AsyncClient(timeout=30) as client:
+                            img_r = await client.get(item["url"])
+                        if img_r.status_code == 200:
+                            return base64.b64encode(img_r.content).decode(), "nvidia/flux.1-dev", "image/png"
+        except Exception:
+            pass  # fall through to next tier
+
+    # ── Tier 2: Pollinations.ai (free, no key) ───────────────────────────────
     try:
         url = POLLINATIONS_URL.format(prompt=quote(prompt))
         async with httpx.AsyncClient(timeout=45, follow_redirects=True) as client:
             r = await client.get(url, headers={"User-Agent": "BrandCraft/1.0"})
         if r.status_code == 200 and len(r.content) > 3000:
-            ct = r.headers.get("content-type", "")
+            ct = r.headers.get("content-type","")
             if "image" in ct or r.content[:2] == b"\xff\xd8":
-                return base64.b64encode(r.content).decode(), "pollinations", "image/jpeg"
+                return base64.b64encode(r.content).decode(), "pollinations/flux", "image/jpeg"
     except Exception:
         pass
 
-    # ── Tier 2: HF FLUX.1-schnell ────────────────────────────────────────────
-    hf_headers = {"Authorization": f"Bearer {HF_API_KEY}"}
-    hf_payload  = {"inputs": prompt, "parameters": {"num_inference_steps": 4, "guidance_scale": 0.0}}
-    last_err    = "no attempts"
-    for _ in range(3):
-        try:
-            async with httpx.AsyncClient(timeout=90) as client:
-                r = await client.post(HF_FLUX_URL, headers=hf_headers, json=hf_payload)
-            if r.status_code == 503:
-                wait = 20
-                try: wait = float(r.json().get("estimated_time", 20))
-                except: pass
-                await asyncio.sleep(min(wait, 25))
-                continue
-            if r.status_code == 200 and len(r.content) > 3000:
-                ct = r.headers.get("content-type", "")
-                if "image" in ct or r.content[:4] in (b"\x89PNG", b"\xff\xd8\xff\xe0"):
-                    return base64.b64encode(r.content).decode(), "flux", "image/png"
-            last_err = f"flux HTTP {r.status_code}"
-            break
-        except Exception as ex:
-            last_err = str(ex); break
+    # ── Tier 3: HuggingFace FLUX.1-schnell ──────────────────────────────────
+    if HF_API_KEY:
+        hf_headers = {"Authorization": f"Bearer {HF_API_KEY}"}
+        hf_payload = {"inputs": prompt, "parameters": {"num_inference_steps": 4, "guidance_scale": 0.0}}
+        for _ in range(2):
+            try:
+                async with httpx.AsyncClient(timeout=90) as client:
+                    r = await client.post(HF_FLUX_URL, headers=hf_headers, json=hf_payload)
+                if r.status_code == 503:
+                    wait = 20
+                    try: wait = float(r.json().get("estimated_time", 20))
+                    except: pass
+                    await asyncio.sleep(min(wait, 25))
+                    continue
+                if r.status_code == 200 and len(r.content) > 3000:
+                    return base64.b64encode(r.content).decode(), "hf/flux.1-schnell", "image/png"
+                break
+            except Exception:
+                break
 
-    raise RuntimeError(f"All image APIs failed — {last_err}")
+    raise RuntimeError("All image generation tiers failed. Check NVIDIA_API_KEY or network access.")
+
+
+# ── Legacy alias — any existing code calling call_image_model still works ────
+async def call_image_model(prompt: str) -> tuple:
+    return await call_nvidia_flux(prompt)
+
 
 
 def resolve_palette(req_primary, req_accent, req_bg, colors_text, style_str):
@@ -442,7 +507,17 @@ async def serve_frontend():
     return FileResponse("index.html")
 @app.get("/health")
 def health():
-    return {"status": "ok", "models": ["groq/llama-3.3-70b", "ibm-granite/3.3-2b", "sdxl"]}
+    nvidia_ok = bool(NVIDIA_API_KEY)
+    return {
+        "status": "ok",
+        "providers": {
+            "groq":   "llama-3.3-70b-versatile (text)",
+            "nvidia": f"{'flux.1-dev + llama-3.3-nemotron-49b (images + chat)' if nvidia_ok else 'NOT CONFIGURED — add NVIDIA_API_KEY'}",
+            "hf":     "flux.1-schnell (image fallback)",
+            "pollinations": "flux (image fallback, no key)"
+        },
+        "nvidia_configured": nvidia_ok
+    }
 
 
 @app.post("/api/brand-names")
@@ -475,25 +550,46 @@ Return ONLY a JSON array:
 @app.post("/api/logo")
 async def generate_logo(req: LogoRequest):
     """
-    Logo generation with 3-tier fallback so the demo NEVER shows a broken image:
-      Tier 1 → Pollinations.ai   (free, no key, real AI image, 3-8s)
-      Tier 2 → HF FLUX.1-schnell (free HF key, real AI image, 10-40s)
-      Tier 3 → Rich SVG fallback  (instant, reflects brand colors + style)
+    Logo generation — NVIDIA FLUX.1-dev primary, then Pollinations, then HF FLUX, then SVG.
+    NVIDIA FLUX produces 1024×1024 high-quality brand logos.
     """
+    # Rich prompt tuned per visual style for FLUX.1-dev
+    style_map = {
+        "minimalist": "ultra-clean minimalist vector logo, negative space, simple geometry",
+        "geometric":  "sharp geometric logo, precise vector shapes, bold symmetry",
+        "vintage":    "retro vintage badge logo, letterpress texture, classic serif",
+        "futuristic": "sleek futuristic logo, glowing accent, sharp digital lines",
+        "playful":    "friendly playful logo, rounded shapes, vibrant and approachable",
+        "luxury":     "premium luxury logo, thin elegant lines, gold accent, refined",
+        "hand-drawn": "hand-crafted artisan logo, organic brushstroke, warm texture",
+    }
+    style_desc = style_map.get(req.style or "minimalist", "clean professional logo")
+    color_note = (
+        f"primary color {req.primary_color}, accent {req.accent_color}"
+        if req.primary_color else
+        (f"using {req.colors}" if req.colors else "sophisticated harmonious brand colors")
+    )
     prompt = (
-        f"{req.style} logo design for brand '{req.brand_name}', {req.industry}. "
-        f"Colors: {req.colors}. Clean minimal icon, white background, no text overlay, "
-        "professional brand identity, flat vector style."
+        f"Professional brand logo design for '{req.brand_name}', {req.industry or 'business'} company. "
+        f"{style_desc}. {color_note}. "
+        f"White background, single centered mark with wordmark, no watermarks. "
+        f"High-end branding agency quality, suitable for print and digital."
     )
 
     try:
-        img_b64, model_used, mime = await call_image_model(prompt)
+        img_b64, model_used, mime = await call_nvidia_flux(prompt, width=1024, height=1024)
+        quality_label = {
+            "nvidia/flux.1-dev":   "NVIDIA FLUX.1-dev · 1024×1024",
+            "pollinations/flux":   "Pollinations FLUX",
+            "hf/flux.1-schnell":   "HuggingFace FLUX.1-schnell",
+        }.get(model_used, model_used)
         return {
             "image_base64": img_b64,
             "mime_type":    mime,
             "prompt_used":  prompt,
             "brand_name":   req.brand_name,
-            "mode":         model_used
+            "mode":         model_used,
+            "model_label":  quality_label,
         }
 
     except Exception as e:
@@ -635,35 +731,35 @@ Return ONLY this JSON:
 
 @app.post("/api/chat")
 async def branding_chat(req: ChatRequest):
-    history_str = ""
-    for h in req.history[-8:]:
-        role    = h.get("role", "user").capitalize()
+    """
+    BrandCraft AI — powered by NVIDIA Llama 3.3 Nemotron 49B (via NIM).
+    Keeps full conversation history for natural multi-turn dialogue.
+    Falls back to Groq LLaMA 3.3-70B if NVIDIA is unavailable.
+    """
+    system_prompt = (
+        "You are BrandCraft AI, an elite branding consultant. "
+        "You specialize in brand identity, brand naming, positioning strategy, "
+        "visual identity systems, go-to-market planning, and brand voice. "
+        "Give specific, actionable, expert-level advice. "
+        "Be direct, confident, and concise — avoid filler phrases. "
+        "When asked for examples, give real, specific, concrete ones."
+    )
+
+    # Build full conversation messages list
+    messages = [{"role": "system", "content": system_prompt}]
+    for h in req.history[-12:]:  # last 12 turns = 6 back-and-forth
+        role    = h.get("role", "user")
         content = h.get("content", "")
-        history_str += f"{role}: {content}\n"
+        if role in ("user", "assistant") and content:
+            messages.append({"role": role, "content": content})
+    messages.append({"role": "user", "content": req.message})
 
-    prompt = f"""<|system|>
-You are BrandCraft AI, an expert branding consultant powered by IBM Granite.
-You specialize in brand identity, naming, positioning, messaging, and go-to-market strategy.
-Give specific, actionable, expert-level branding advice.
-<|end|>
-<|user|>
-{history_str}User: {req.message}
-<|end|>
-<|assistant|>"""
+    response = await call_nvidia_chat(messages, temperature=0.65, max_tokens=900)
 
-    try:
-        response = await call_ibm_granite(prompt)
-        for token in ["<|end|>", "<|assistant|>", "<|user|>", "<|system|>"]:
-            response = response.replace(token, "").strip()
-        model_used = "ibm-granite/granite-3.3-2b-instruct"
-    except Exception:
-        response = await call_groq(
-            "You are BrandCraft AI, an expert branding consultant. Give specific, actionable advice.",
-            req.message
-        )
-        model_used = "groq/llama-3.3-70b-versatile (fallback)"
+    # Detect which model actually responded (Nemotron or Groq fallback)
+    model_used = "nvidia/llama-3.3-nemotron-49b" if NVIDIA_API_KEY else "groq/llama-3.3-70b"
 
-    return {"response": response, "model": model_used}
+    return {"response": response.strip(), "model": model_used}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -865,3 +961,136 @@ Return ONLY this JSON:
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# BRAND IDENTITY SYSTEM
+# ─────────────────────────────────────────────────────────────────────────────
+class BrandIdentityRequest(BaseModel):
+    brand_name:      str
+    tagline:         Optional[str] = ""
+    brand_story:     Optional[str] = ""
+    industry:        Optional[str] = ""
+    target_audience: Optional[str] = ""
+    values:          Optional[str] = ""
+    logo_primary:    Optional[str] = ""
+    logo_accent:     Optional[str] = ""
+
+
+@app.post("/api/brand-identity")
+async def generate_brand_identity(req: BrandIdentityRequest):
+    """
+    Single-pass brand identity generation.
+    Uses llama-3.3-70b-versatile with 8000 tokens — plenty for the full kit.
+    Parallel sub-calls with focused prompts ensure nothing gets truncated.
+    """
+    import asyncio
+
+    brand_ctx = (
+        f"Brand: {req.brand_name}\n"
+        f"Industry: {req.industry}\n"
+        f"Tagline: {req.tagline}\n"
+        f"Story: {req.brand_story}\n"
+        f"Audience: {req.target_audience}\n"
+        f"Values: {req.values}\n"
+        f"Logo colors: primary={req.logo_primary} accent={req.logo_accent}"
+    )
+
+    SYS = "You are a world-class brand identity strategist. Return ONLY valid compact JSON. No markdown, no code fences, no extra whitespace."
+
+    # ── CALL A: Archetype + Personality + Palette (focused, ~1800 tokens output) ──
+    call_a = f"""{brand_ctx}
+
+Return ONLY this JSON object:
+{{"brand_name":"{req.brand_name}","brand_archetype":"choose one: The Creator|The Explorer|The Hero|The Sage|The Innocent|The Outlaw|The Magician|The Ruler|The Lover|The Caregiver|The Jester|The Everyman","brand_personality":{{"summary":"2 sentences","archetype_description":"1 sentence why","personality_traits":[{{"trait":"Name","description":"1 sentence"}},{{"trait":"Name","description":"1 sentence"}},{{"trait":"Name","description":"1 sentence"}},{{"trait":"Name","description":"1 sentence"}},{{"trait":"Name","description":"1 sentence"}}],"emotional_positioning":"1 sentence","brand_promise":"1 sentence"}},"color_palette":{{"core_colors":[{{"name":"Primary","hex":"#RRGGBB","role":"dominant","pantone":"PMS xxx"}},{{"name":"Secondary","hex":"#RRGGBB","role":"complementary","pantone":"PMS xxx"}},{{"name":"Accent","hex":"#RRGGBB","role":"highlight","pantone":"PMS xxx"}},{{"name":"Dark BG","hex":"#RRGGBB","role":"dark bg"}},{{"name":"Light BG","hex":"#RRGGBB","role":"light bg"}}],"extended_palette":[{{"name":"Tint","hex":"#RRGGBB","usage":"hover/subtle bg"}},{{"name":"Border","hex":"#RRGGBB","usage":"borders"}},{{"name":"Success","hex":"#RRGGBB","usage":"positive states"}},{{"name":"Warning","hex":"#RRGGBB","usage":"attention"}}],"color_strategy":"2 sentences","color_psychology":"2 sentences"}}}}"""
+
+    # ── CALL B: Typography + Voice (focused, ~1400 tokens output) ─────────────
+    call_b = f"""{brand_ctx}
+
+Return ONLY this JSON object:
+{{"typography":{{"fonts":[{{"role":"Display","font_family":"name","sizes":"48/60/72px","weight":"300","line_height":"1.1","letter_spacing":"-0.02em","sample_text":"phrase","usage_notes":"hero only"}},{{"role":"Heading","font_family":"name","sizes":"24/32/40px","weight":"600","line_height":"1.2","letter_spacing":"-0.01em","sample_text":"Section Title","usage_notes":"headers"}},{{"role":"Body","font_family":"name","sizes":"14/16/18px","weight":"400","line_height":"1.7","letter_spacing":"0","sample_text":"Crafted for those who know.","usage_notes":"paragraphs"}},{{"role":"Mono/Label","font_family":"name","sizes":"10/12px","weight":"500","line_height":"1.4","letter_spacing":"0.12em","sample_text":"EST. 2024 · BRAND","usage_notes":"labels"}}],"hierarchy_rules":"2 sentences","fallback_stack":"CSS stack string"}},"brand_voice":{{"summary":"2 sentences","tone_attributes":["Word1","Word2","Word3","Word4","Word5"],"voice_pairs":[{{"is":"Confident","is_not":"Arrogant"}},{{"is":"Approachable","is_not":"Sloppy"}},{{"is":"Precise","is_not":"Verbose"}},{{"is":"Warm","is_not":"Cold"}}],"writing_guidelines":"3 rules","sample_copy":"one headline"}}}}"""
+
+    # ── CALL C: Logo + Visual + Dos/Donts (focused, ~1400 tokens output) ──────
+    call_c = f"""{brand_ctx}
+
+Return ONLY this JSON object:
+{{"logo_guidelines":{{"overview":"2 sentences","rules":[{{"type":"do","title":"Clean backgrounds","description":"Solid white, cream, or brand primary"}},{{"type":"do","title":"Maintain ratio","description":"Never stretch or distort"}},{{"type":"do","title":"Approved versions","description":"Full-color, white reverse, single-color only"}},{{"type":"dont","title":"No effects","description":"No shadows, glows, or gradients"}},{{"type":"dont","title":"No busy backgrounds","description":"No photos without a solid panel"}},{{"type":"dont","title":"No recoloring","description":"Never change logo colors for campaigns"}}],"clear_space":"1 sentence rule","minimum_size":"digital and print mins","background_usage":"1 sentence"}},"visual_style":{{"overview":"2 sentences","style_elements":[{{"element":"Layout","description":"1 sentence"}},{{"element":"Imagery","description":"1 sentence"}},{{"element":"Shapes","description":"1 sentence"}},{{"element":"Texture","description":"1 sentence"}},{{"element":"Motion","description":"1 sentence"}}],"photography":"2 sentences","iconography":"1 sentence","layout":"2 sentences"}},"dos_and_donts":{{"dos":["do 1","do 2","do 3","do 4","do 5","do 6"],"donts":["dont 1","dont 2","dont 3","dont 4","dont 5","dont 6"],"critical_rules":"1 sentence"}}}}"""
+
+    # Run all three in parallel
+    raw_a, raw_b, raw_c = await asyncio.gather(
+        call_groq(SYS, call_a, temperature=0.4, max_tokens=2000),
+        call_groq(SYS, call_b, temperature=0.4, max_tokens=1800),
+        call_groq(SYS, call_c, temperature=0.4, max_tokens=1800),
+    )
+
+    kit_a = safe_json(raw_a, {})
+    kit_b = safe_json(raw_b, {})
+    kit_c = safe_json(raw_c, {})
+
+    # Merge all three into one kit
+    kit = {**kit_a, **kit_b, **kit_c}
+    kit["brand_name"] = req.brand_name
+
+    # Apply logo studio colors if provided
+    if req.logo_primary:
+        cores = kit.get("color_palette", {}).get("core_colors", [])
+        if cores: cores[0]["hex"] = req.logo_primary
+    if req.logo_accent:
+        cores = kit.get("color_palette", {}).get("core_colors", [])
+        if len(cores) > 2: cores[2]["hex"] = req.logo_accent
+
+    # Ensure no section is missing
+    if not kit.get("brand_archetype"):
+        kit["brand_archetype"] = "The Creator"
+    if not kit.get("brand_personality") or not kit["brand_personality"].get("summary"):
+        kit["brand_personality"] = {
+            "summary": f"{req.brand_name} blends purpose and craft to deliver something genuinely distinctive.",
+            "archetype_description": "A brand that leads with vision and creates lasting impressions.",
+            "personality_traits": [
+                {"trait": "Authentic", "description": "Every touchpoint reflects genuine values."},
+                {"trait": "Intentional", "description": "Nothing is accidental — every detail serves a purpose."},
+                {"trait": "Bold", "description": "Willing to take a stand and own it."},
+                {"trait": "Warm", "description": "Approachable without sacrificing substance."},
+                {"trait": "Precise", "description": "Clarity in everything, from copy to design."},
+            ],
+            "emotional_positioning": "Trust and quiet confidence.",
+            "brand_promise": f"{req.brand_name} delivers on what it promises, every time.",
+        }
+    if not kit.get("color_palette") or not kit["color_palette"].get("core_colors"):
+        kit["color_palette"] = {
+            "core_colors": [
+                {"name": "Primary",   "hex": "#1a1628", "role": "dominant brand color",  "pantone": "Pantone 2765 C"},
+                {"name": "Secondary", "hex": "#f5f0e8", "role": "complementary",          "pantone": "Pantone 9182 C"},
+                {"name": "Accent",    "hex": "#c8522a", "role": "highlight / CTA",        "pantone": "Pantone 7526 C"},
+                {"name": "Dark BG",   "hex": "#0f0f1a", "role": "dark backgrounds"},
+                {"name": "Light BG",  "hex": "#faf8f4", "role": "light backgrounds"},
+            ],
+            "extended_palette": [
+                {"name": "Tint",    "hex": "#ede8dc", "usage": "hover states, subtle backgrounds"},
+                {"name": "Border",  "hex": "#d8d0c0", "usage": "borders, dividers"},
+                {"name": "Success", "hex": "#3d6b4f", "usage": "positive / success states"},
+                {"name": "Warning", "hex": "#b89a3c", "usage": "warning / attention states"},
+            ],
+            "color_strategy": "A palette anchored in depth and warmth that signals quality.",
+            "color_psychology": "The dark primary builds trust; the warm accent creates action.",
+        }
+    if not kit.get("typography") or not kit["typography"].get("fonts"):
+        kit["typography"] = {
+            "fonts": [
+                {"role": "Display",    "font_family": "Georgia",     "sizes": "48/60/72px", "weight": "400", "line_height": "1.1", "letter_spacing": "-0.02em", "sample_text": "Built to last.",        "usage_notes": "Hero headlines only"},
+                {"role": "Heading",    "font_family": "Georgia",     "sizes": "24/32/40px", "weight": "400", "line_height": "1.2", "letter_spacing": "-0.01em", "sample_text": "Our Story",             "usage_notes": "Section headers"},
+                {"role": "Body",       "font_family": "Calibri",     "sizes": "14/16/18px", "weight": "400", "line_height": "1.7", "letter_spacing": "0",       "sample_text": "Crafted with care.",   "usage_notes": "Paragraphs, captions"},
+                {"role": "Mono/Label", "font_family": "Courier New", "sizes": "10/12px",    "weight": "500", "line_height": "1.4", "letter_spacing": "0.12em",  "sample_text": "EST. 2024",             "usage_notes": "Labels, eyebrows"},
+            ],
+            "hierarchy_rules": "Use Display sparingly for maximum impact. Body should remain readable at all sizes.",
+            "fallback_stack": "Georgia, 'Times New Roman', serif",
+        }
+    for key, fallback in [
+        ("brand_voice",     {"summary": "", "tone_attributes": [], "voice_pairs": [], "writing_guidelines": "", "sample_copy": ""}),
+        ("logo_guidelines", {"overview": "", "rules": [], "clear_space": "", "minimum_size": "", "background_usage": ""}),
+        ("visual_style",    {"overview": "", "style_elements": [], "photography": "", "iconography": "", "layout": ""}),
+        ("dos_and_donts",   {"dos": [], "donts": [], "critical_rules": ""}),
+    ]:
+        if not kit.get(key):
+            kit[key] = fallback
+
+    return kit

@@ -9,6 +9,7 @@
 <style>
 /* ─── TOKENS ─────────────────────────────────────────────────────────────── */
 :root {
+  color-scheme: light;
   --cream:    #f5f0e8;
   --warm:     #ede8dc;
   --paper:    #faf8f4;
@@ -26,6 +27,153 @@
   --shadow:   0 2px 20px rgba(26,22,18,0.08);
   --shadow-lg:0 8px 40px rgba(26,22,18,0.14);
 }
+
+/* ─── DARK MODE ─────────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --cream:    #1e1a16;
+    --warm:     #252018;
+    --paper:    #181512;
+    --ink:      #f0ebe2;
+    --ink-mid:  #c8bfb0;
+    --ink-dim:  #7a7268;
+    --rust:     #e06b40;
+    --rust-lt:  #f08060;
+    --gold:     #c8aa4c;
+    --sage:     #4d8b5f;
+    --border:   #3a3228;
+    --shadow:   0 2px 20px rgba(0,0,0,0.35);
+    --shadow-lg:0 8px 40px rgba(0,0,0,0.55);
+  }
+
+  body { background: var(--paper); color: var(--ink); }
+
+  /* Header */
+  header { background: rgba(24,21,18,0.96); border-bottom-color: var(--border); }
+  .logo-mark { background: var(--cream); color: var(--ink); }
+
+  /* Sidebar */
+  aside { background: var(--cream); border-right-color: var(--border); }
+  .nav-link:hover { background: var(--warm); }
+  .nav-link.active { background: rgba(224,107,64,0.1); }
+
+  /* Inputs */
+  input[type="text"], input[type="password"], textarea, select {
+    background: #22201c;
+    border-color: var(--border);
+    color: var(--ink);
+  }
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--rust);
+    box-shadow: 0 0 0 3px rgba(224,107,64,0.15);
+  }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a7268'/%3E%3C/svg%3E");
+  }
+
+  /* Cards & panels */
+  .result-card { background: #1e1a16; border-color: var(--border); }
+  .name-card   { background: var(--warm); border-color: var(--border); }
+  .name-card:hover { border-color: var(--rust); }
+  .tagline-card { background: var(--warm); }
+  .tagline-card:hover { background: #2a2520; }
+  .post-card    { background: var(--warm); border-color: var(--border); }
+  .story-block  { border-bottom-color: var(--border); }
+  .email-preview-card { background: var(--warm); border-color: var(--border); }
+  .email-header { background: #252018; border-bottom-color: var(--border); }
+  .email-body-area { background: var(--paper); }
+
+  /* Analysis */
+  .analysis-block  { background: var(--warm); border-color: var(--border); }
+  .sentiment-dial  { background: var(--warm); }
+
+  /* Logo studio */
+  .studio-canvas   { background: #0f0e0c; }
+  .studio-controls { background: var(--cream); border-left-color: var(--border); }
+  .ctrl-section    { border-bottom-color: var(--border); }
+
+  /* Chat */
+  .chat-shell { background: #1e1a16; border-color: var(--border); }
+  .chat-top   { background: var(--cream); border-bottom-color: var(--border); }
+  .chat-foot  { background: var(--cream); border-top-color: var(--border); }
+  .chat-messages { background: var(--paper); }
+  .msg.user .msg-bubble { background: #3a2d25; color: var(--ink); }
+  .msg.ai   .msg-bubble { background: var(--warm); border-color: var(--border); }
+
+  /* Buttons */
+  .btn-primary { background: #2e2520; color: var(--ink); border: 1px solid var(--rust); }
+  .btn-primary:hover { background: var(--rust); color: #fff; }
+  .btn-outline { background: transparent; border-color: var(--border); color: var(--ink-mid); }
+  .btn-outline:hover { border-color: var(--ink); color: var(--ink); }
+
+  /* Tabs */
+  .tab-btn { background: transparent; color: var(--ink-dim); border: none; }
+  .tab-btn.active { background: var(--warm); color: var(--rust); }
+  .tab-btn:hover  { background: var(--warm); }
+
+  /* Brand identity tabs */
+  .bi-tab { color: var(--ink-dim); }
+  .bi-tab.active { color: var(--rust); background: var(--warm); }
+  .bi-tab:hover  { background: var(--warm); color: var(--ink); }
+
+  /* Palette/font cards */
+  .bi-font-card   { background: var(--warm); border-color: var(--border); }
+  .bi-rule-card   { background: var(--warm); border-color: var(--border); }
+  .bi-visual-card { background: var(--warm); border-color: var(--border); }
+  .bi-do-card     { background: rgba(77,139,95,0.12);  border-color: rgba(77,139,95,0.25); }
+  .bi-dont-card   { background: rgba(224,107,64,0.10); border-color: rgba(224,107,64,0.22); }
+  .bi-archetype-banner { background: var(--cream); }
+  .bi-trait-card  { background: var(--warm); border-color: var(--border); }
+  .bi-voice-is    { background: rgba(77,139,95,0.12);  border-color: rgba(77,139,95,0.22); }
+  .bi-voice-not   { background: rgba(224,107,64,0.10); border-color: rgba(224,107,64,0.2); }
+
+  /* Pitch deck steps */
+  .keys-strip { background: var(--warm); border-color: var(--border); }
+  .key-input  { background: #22201c; border-color: var(--border); color: var(--ink); }
+
+  /* Emotion bars */
+  .emotion-track { background: var(--warm); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+
+  /* Logo studio palette chip */
+  .palette-chip { opacity: 0.9; }
+
+  /* Shape/style/font chips */
+  .shape-opt, .style-chip, .font-chip { background: var(--warm); border-color: var(--border); color: var(--ink-dim); }
+  .shape-opt.active, .style-chip.active, .font-chip.active { background: var(--rust); color: #fff; border-color: var(--rust); }
+
+  /* Variation cards */
+  .variation-card { background: var(--warm); border-color: var(--border); }
+  .variation-card.selected { border-color: var(--rust); }
+
+  /* Model pills */
+  .pill-groq  { background: rgba(200,170,76,0.12); }
+  .pill-nvidia { background: rgba(118,185,0,0.1); }
+  .pill-ibm   { background: rgba(77,139,95,0.1); }
+  .pill-sdxl  { background: rgba(123,94,167,0.1); }
+
+  /* Keys strip */
+  .powered-by { border-color: var(--border); color: var(--ink-dim); }
+
+  /* Misc */
+  .value-pill    { background: var(--warm); border-color: var(--border); color: var(--ink-mid); }
+  .cat-badge     { background: var(--warm); color: var(--ink-mid); }
+  .word-stats    { color: var(--ink-dim); }
+  .elevator-pitch { border-left-color: var(--rust); color: var(--rust-lt); }
+  .copy-floater  { background: var(--warm); border-color: var(--border); color: var(--ink-dim); }
+  .copy-floater:hover { background: var(--ink); color: var(--cream); }
+  .loading-row   { color: var(--ink-dim); }
+
+  /* Canvas area */
+  .canvas-frame  { background: #0f0e0c; border-color: var(--border); }
+  .canvas-actions { background: #1e1a16; }
+  .canvas-btn    { background: var(--warm); color: var(--ink-mid); border-color: var(--border); }
+  .canvas-btn.primary { background: var(--rust); color: #fff; border-color: var(--rust); }
+}
+
 
 /* ─── RESET ──────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -265,6 +413,7 @@ main { padding: 2.5rem 3rem; overflow-y: auto; }
 .pill-groq  { color: var(--gold);   border-color: rgba(184,154,60,0.4);  background: rgba(184,154,60,0.06); }
 .pill-ibm   { color: var(--sage);   border-color: rgba(61,107,79,0.4);   background: rgba(61,107,79,0.06); }
 .pill-sdxl  { color: #7b5ea7;       border-color: rgba(123,94,167,0.4);  background: rgba(123,94,167,0.06); }
+.pill-nvidia { color: #76b900;       border-color: rgba(118,185,0,0.4);   background: rgba(118,185,0,0.06);  }
 
 /* ─── FORM ───────────────────────────────────────────────────────────────── */
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
@@ -1187,6 +1336,255 @@ select {
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
+/* ─── BRAND IDENTITY SYSTEM ──────────────────────────────────────────────── */
+.bi-tab {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.7rem 1.1rem;
+  border: none;
+  background: transparent;
+  color: var(--ink-dim);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.bi-tab:hover { color: var(--ink); background: var(--warm); }
+.bi-tab.active { color: var(--rust); border-bottom-color: var(--rust); background: white; }
+
+.bi-pane { display: none; }
+.bi-pane.active { display: block; animation: panelIn 0.25s ease; }
+
+.bi-section { margin-bottom: 1.75rem; padding-bottom: 1.75rem; border-bottom: 1px solid var(--border); }
+.bi-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+.bi-section-label {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--rust);
+  margin-bottom: 0.6rem;
+}
+
+.bi-section p, .bi-section .bi-text {
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: var(--ink);
+}
+
+.bi-trait-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.6rem;
+  margin-top: 0.4rem;
+}
+
+.bi-trait-card {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem;
+  text-align: center;
+  transition: border-color 0.15s;
+}
+.bi-trait-card:hover { border-color: var(--rust); }
+.bi-trait-card .trait-icon { font-size: 1.4rem; display: block; margin-bottom: 0.3rem; }
+.bi-trait-card .trait-name { font-family: var(--mono); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-mid); }
+.bi-trait-card .trait-desc { font-size: 0.75rem; color: var(--ink-dim); margin-top: 0.2rem; line-height: 1.4; }
+
+.bi-swatch-row { display: flex; gap: 0; margin: 0.6rem 0; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+.bi-swatch {
+  flex: 1;
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 0.55rem;
+  cursor: pointer;
+  transition: flex 0.25s;
+  position: relative;
+}
+.bi-swatch:hover { flex: 1.4; }
+.bi-swatch .sw-hex { font-family: var(--mono); font-size: 0.6rem; color: inherit; letter-spacing: 0.05em; opacity: 0.85; }
+.bi-swatch .sw-label { font-family: var(--mono); font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.7; margin-top: 1px; }
+
+.bi-extended-swatches { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.6rem; }
+.bi-ext-swatch { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.7rem; background: var(--paper); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; }
+.bi-ext-swatch .ext-dot { width: 20px; height: 20px; border-radius: 4px; flex-shrink: 0; }
+.bi-ext-swatch .ext-info { font-family: var(--mono); font-size: 0.6rem; color: var(--ink-dim); }
+.bi-ext-swatch .ext-role { font-size: 0.65rem; font-weight: 600; color: var(--ink-mid); }
+
+.bi-font-card {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.6rem;
+}
+.bi-font-card .fc-role { font-family: var(--mono); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--rust); margin-bottom: 0.3rem; }
+.bi-font-card .fc-name { font-size: 1.2rem; font-weight: 600; color: var(--ink); margin-bottom: 0.2rem; }
+.bi-font-card .fc-sample { color: var(--ink-dim); line-height: 1.6; }
+.bi-font-card .fc-specs { font-family: var(--mono); font-size: 0.62rem; color: var(--ink-dim); margin-top: 0.4rem; display: flex; gap: 1rem; flex-wrap: wrap; }
+
+.bi-voice-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+.bi-voice-is { background: rgba(61,107,79,0.06); border: 1px solid rgba(61,107,79,0.2); border-radius: 7px; padding: 0.7rem 0.9rem; }
+.bi-voice-not { background: rgba(200,82,42,0.05); border: 1px solid rgba(200,82,42,0.18); border-radius: 7px; padding: 0.7rem 0.9rem; }
+.bi-voice-is .vv-label { font-family: var(--mono); font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sage); margin-bottom: 0.25rem; }
+.bi-voice-not .vv-label { font-family: var(--mono); font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--rust); margin-bottom: 0.25rem; }
+.bi-voice-is p, .bi-voice-not p { font-size: 0.85rem; color: var(--ink-mid); line-height: 1.6; margin: 0; }
+
+.bi-rule-card {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+}
+.bi-rule-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+.bi-rule-card p { font-size: 0.875rem; color: var(--ink-mid); line-height: 1.6; margin: 0; }
+.bi-rule-card .rule-title { font-weight: 600; color: var(--ink); font-size: 0.875rem; margin-bottom: 0.2rem; }
+
+.bi-do-dont-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.bi-do-card { background: rgba(61,107,79,0.05); border: 1px solid rgba(61,107,79,0.2); border-radius: 8px; padding: 1rem 1.1rem; }
+.bi-dont-card { background: rgba(200,82,42,0.05); border: 1px solid rgba(200,82,42,0.2); border-radius: 8px; padding: 1rem 1.1rem; }
+.bi-do-card .dd-header { font-family: var(--mono); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--sage); margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.4rem; }
+.bi-dont-card .dd-header { font-family: var(--mono); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--rust); margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.4rem; }
+.bi-do-card li, .bi-dont-card li { font-size: 0.85rem; color: var(--ink-mid); line-height: 1.6; padding: 0.3rem 0; border-bottom: 1px solid rgba(0,0,0,0.06); list-style: none; display: flex; gap: 0.5rem; }
+.bi-do-card li:last-child, .bi-dont-card li:last-child { border-bottom: none; }
+.bi-do-card li::before { content: '✓'; color: var(--sage); flex-shrink: 0; }
+.bi-dont-card li::before { content: '✕'; color: var(--rust); flex-shrink: 0; }
+
+.bi-visual-card {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  margin-bottom: 0.5rem;
+}
+.bi-visual-card .vc-label { font-family: var(--mono); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--rust); margin-bottom: 0.3rem; }
+.bi-visual-card p { font-size: 0.875rem; color: var(--ink-mid); line-height: 1.65; margin: 0; }
+
+.bi-archetype-banner {
+  background: var(--ink);
+  color: var(--cream);
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+.bi-archetype-icon { font-size: 2rem; flex-shrink: 0; }
+.bi-archetype-name { font-family: var(--serif); font-size: 1.4rem; color: var(--cream); }
+.bi-archetype-desc { font-size: 0.82rem; color: rgba(245,240,232,0.7); line-height: 1.55; margin-top: 0.2rem; }
+
+.bi-detected-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  padding: 3px 9px;
+  border-radius: 20px;
+  background: white;
+  border: 1px solid var(--border);
+  color: var(--ink-mid);
+}
+.bi-detected-chip.has-data { background: rgba(61,107,79,0.08); border-color: rgba(61,107,79,0.3); color: var(--sage); }
+.bi-detected-chip.no-data { background: rgba(200,82,42,0.06); border-color: rgba(200,82,42,0.2); color: var(--rust); }
+
+/* Final-pass dark overrides for inline white cards, form inputs, and dropdowns */
+@media (prefers-color-scheme: dark) {
+  .result-card,
+  .logo-frame,
+  .logo-studio,
+  .bi-tab.active,
+  .bi-detected-chip {
+    background: var(--warm);
+    color: var(--ink);
+  }
+
+  /* AGGRESSIVELY override all inline white backgrounds */
+  [style*="background:white"],
+  [style*="background: white"],
+  [style*="background:#fff"],
+  [style*="background: #fff"],
+  [style*="background:#ffffff"],
+  [style*="background: #ffffff"] {
+    background: var(--warm) !important;
+    color: var(--ink) !important;
+    border-color: var(--border) !important;
+  }
+
+  /* Force form inputs, selects, and text areas to dark theme */
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="search"],
+  input[type="url"],
+  input[type="number"],
+  textarea,
+  select {
+    background: #22201c !important;
+    color: var(--ink) !important;
+    border-color: var(--border) !important;
+  }
+
+  /* Fix color picker and other input types */
+  input[type="color"] {
+    border-color: var(--border) !important;
+  }
+
+  /* Ensure placeholder text is visible */
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--ink-dim);
+  }
+
+  /* Fix old borders affected by light mode colors */
+  [style*="border-bottom: 1px solid rgba(0,0,0,0.06)"],
+  [style*="border-bottom:1px solid rgba(0,0,0,0.06)"] {
+    border-bottom: 1px solid var(--border) !important;
+  }
+
+  /* Dropdown option styling (cross-browser) */
+  select option {
+    background: #22201c;
+    color: var(--ink);
+  }
+
+  /* Fix search/date/time inputs that might have white backgrounds */
+  input[type="search"],
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"] {
+    background: #22201c !important;
+    color: var(--ink) !important;
+  }
+
+  /* Override any inline color:white on text elements */
+  [style*="color:white"],
+  [style*="color: white"],
+  [style*="color:#fff"],
+  [style*="color: #fff"],
+  [style*="color:#ffffff"],
+  [style*="color: #ffffff"] {
+    color: var(--ink) !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1219,6 +1617,10 @@ select {
       </div>
       <div class="nav-link" onclick="go('brand-story', this)">
         <span class="nav-icon">◎</span> Brand Story
+      </div>
+      <div class="nav-link" id="nav-brand-identity" onclick="go('brand-identity', this)">
+        <span class="nav-icon">◈</span> Identity System
+        <span id="bi-badge" style="margin-left:auto;font-family:var(--mono);font-size:0.55rem;background:var(--rust);color:white;border-radius:10px;padding:1px 6px;display:none">NEW</span>
       </div>
     </div>
 
@@ -1893,25 +2295,24 @@ select {
         <div class="page-hd-left">
           <div class="page-eyebrow">AI Consultant</div>
           <div class="page-title">BrandCraft <em>AI</em></div>
-          <div class="page-sub">IBM Granite-powered branding advisor — ask anything about brand strategy</div>
+          <div class="page-sub">NVIDIA Nemotron 49B — expert branding advisor with full conversation memory</div>
         </div>
-        <span class="model-pill pill-ibm">🧠 IBM Granite 3.3</span>
+        <span class="model-pill pill-nvidia">🟢 NVIDIA · Nemotron 49B</span>
       </div>
 
       <div class="chat-shell">
         <div class="chat-top">
-          <div class="chat-avatar">🧠</div>
+          <div class="chat-avatar" style="background:#76b900">⚡</div>
           <div>
             <div class="chat-agent-name">BrandCraft AI</div>
-            <div class="chat-status">Online — IBM Granite 3.3</div>
+            <div class="chat-status">Online — Llama Nemotron 49B · NVIDIA NIM</div>
           </div>
         </div>
 
         <div class="chat-messages" id="chat-msgs">
           <div class="msg ai">
             <div class="msg-bubble">
-              Hello! I'm BrandCraft AI, your expert branding consultant powered by IBM Granite. I can help with brand strategy, positioning, naming frameworks, competitive differentiation, messaging architecture, visual identity guidelines, and go-to-market planning.<br><br>
-              What are you working on today?
+              Hello! I'm BrandCraft AI — your expert branding consultant, now powered by <strong>NVIDIA Llama 3.3 Nemotron 49B</strong>. I can help with brand strategy, naming, positioning, visual identity, go-to-market planning, and competitive differentiation.<br><br>What are you working on today?
             </div>
             <div class="msg-time">BrandCraft AI · now</div>
           </div>
@@ -1935,7 +2336,7 @@ select {
         <div class="page-hd-left">
           <div class="page-eyebrow">Pitch &amp; Decks</div>
           <div class="page-title">Reference Pitch <em>Deck</em></div>
-          <div class="page-sub">AI generates a branded 10-slide deck with real images — Gamma + Behance style, industry-specific layouts</div>
+          <div class="page-sub">AI generates a branded 10-slide deck with NVIDIA FLUX.1-dev images — Gamma + Behance style, industry-specific layouts</div>
         </div>
         <span class="model-pill pill-groq">⚡ Groq + Node · PPTX + Images</span>
       </div>
@@ -2120,6 +2521,172 @@ select {
       </div>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- BRAND IDENTITY SYSTEM -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="panel" id="p-brand-identity">
+      <div class="page-hd">
+        <div class="page-hd-left">
+          <div class="page-eyebrow">Brand Identity · Final Step</div>
+          <div class="page-title">Brand Identity <em>System</em></div>
+          <div class="page-sub">Complete brand kit — personality, palette, typography, voice, logo rules, visual style &amp; do's/don'ts</div>
+        </div>
+        <span class="model-pill pill-groq">⚡ Groq · LLaMA 3.3-70B · 2-Pass</span>
+      </div>
+
+      <!-- ── WHAT THIS GENERATES — always visible intro ─────────────────── -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:0.6rem;margin-bottom:1.75rem">
+        <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:0.85rem;text-align:center">
+          <div style="font-size:1.3rem;margin-bottom:0.3rem">◈</div>
+          <div style="font-family:var(--mono);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--rust);margin-bottom:0.2rem">Personality</div>
+          <div style="font-size:0.75rem;color:var(--ink-dim)">Archetype, traits &amp; brand promise</div>
+        </div>
+        <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:0.85rem;text-align:center">
+          <div style="font-size:1.3rem;margin-bottom:0.3rem">🎨</div>
+          <div style="font-family:var(--mono);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--rust);margin-bottom:0.2rem">Colour Palette</div>
+          <div style="font-size:0.75rem;color:var(--ink-dim)">Core + extended palette with hex codes</div>
+        </div>
+        <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:0.85rem;text-align:center">
+          <div style="font-size:1.3rem;margin-bottom:0.3rem">Aa</div>
+          <div style="font-family:var(--mono);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--rust);margin-bottom:0.2rem">Typography</div>
+          <div style="font-size:0.75rem;color:var(--ink-dim)">4-level type system with specs</div>
+        </div>
+        <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:0.85rem;text-align:center">
+          <div style="font-size:1.3rem;margin-bottom:0.3rem">💬</div>
+          <div style="font-family:var(--mono);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--rust);margin-bottom:0.2rem">Brand Voice</div>
+          <div style="font-size:0.75rem;color:var(--ink-dim)">Tone, writing rules &amp; sample copy</div>
+        </div>
+        <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:0.85rem;text-align:center">
+          <div style="font-size:1.3rem;margin-bottom:0.3rem">◉</div>
+          <div style="font-family:var(--mono);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--rust);margin-bottom:0.2rem">Logo Rules</div>
+          <div style="font-size:0.75rem;color:var(--ink-dim)">Usage, clear space &amp; placement</div>
+        </div>
+        <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:0.85rem;text-align:center">
+          <div style="font-size:1.3rem;margin-bottom:0.3rem">✦</div>
+          <div style="font-family:var(--mono);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--rust);margin-bottom:0.2rem">Visual Style</div>
+          <div style="font-size:0.75rem;color:var(--ink-dim)">Photography, layout &amp; iconography</div>
+        </div>
+        <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:0.85rem;text-align:center">
+          <div style="font-size:1.3rem;margin-bottom:0.3rem">✓✕</div>
+          <div style="font-family:var(--mono);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--rust);margin-bottom:0.2rem">Do's &amp; Don'ts</div>
+          <div style="font-size:0.75rem;color:var(--ink-dim)">Brand rules, always vs never</div>
+        </div>
+      </div>
+
+      <!-- ── Context pill — shows what's been auto-detected ─────────────── -->
+      <div id="bi-context-bar" style="background:var(--warm);border:1px solid var(--border);border-radius:8px;padding:0.85rem 1.25rem;margin-bottom:1.75rem">
+        <div style="font-family:var(--mono);font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--rust);margin-bottom:0.5rem">✦ Auto-Detected from Your Generated Assets</div>
+        <div id="bi-detected-fields" style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:0.5rem">
+          <span style="font-family:var(--mono);font-size:0.65rem;color:var(--ink-dim)">Navigate to this panel after generating assets — fields will auto-populate.</span>
+        </div>
+        <div style="font-size:0.78rem;color:var(--ink-dim)">Fields below pre-fill from your previous generators. Fill anything missing, then click Generate.</div>
+      </div>
+
+      <!-- ── Input fields ────────────────────────────────────────────────── -->
+      <div class="form-grid">
+        <div class="field">
+          <label>Brand Name</label>
+          <input type="text" id="bi-brand" placeholder="From Brand Names generator">
+        </div>
+        <div class="field">
+          <label>Industry</label>
+          <input type="text" id="bi-industry" placeholder="e.g. Sustainable Fashion, SaaS">
+        </div>
+        <div class="field full">
+          <label>Tagline</label>
+          <input type="text" id="bi-tagline" placeholder="From Tagline generator">
+        </div>
+        <div class="field full">
+          <label>Brand Story / Mission</label>
+          <textarea id="bi-story" style="min-height:90px" placeholder="From Brand Story generator — or describe your brand idea here"></textarea>
+        </div>
+        <div class="field">
+          <label>Target Audience</label>
+          <input type="text" id="bi-audience" placeholder="e.g. startup founders, Gen Z consumers">
+        </div>
+        <div class="field">
+          <label>Core Values (comma-separated)</label>
+          <input type="text" id="bi-values" placeholder="e.g. Quality, Trust, Innovation">
+        </div>
+        <div class="field">
+          <label>Logo Primary Color <span style="font-size:0.72rem;color:var(--ink-dim)">(from Logo Studio)</span></label>
+          <div style="display:flex;gap:0.5rem;align-items:center">
+            <div id="bi-logo-swatch-primary" style="width:36px;height:36px;border-radius:6px;border:1px solid var(--border);background:#1a1628;flex-shrink:0;cursor:pointer" onclick="document.getElementById('bi-clr-primary').click()"></div>
+            <input type="color" id="bi-clr-primary" value="#1a1628" style="display:none" oninput="document.getElementById('bi-logo-primary').value=this.value;document.getElementById('bi-logo-swatch-primary').style.background=this.value">
+            <input type="text" id="bi-logo-primary" placeholder="#1a1628" style="font-family:var(--mono);font-size:0.85rem;flex:1" oninput="biSyncSwatch('primary',this.value)">
+          </div>
+        </div>
+        <div class="field">
+          <label>Logo Accent Color <span style="font-size:0.72rem;color:var(--ink-dim)">(from Logo Studio)</span></label>
+          <div style="display:flex;gap:0.5rem;align-items:center">
+            <div id="bi-logo-swatch-accent" style="width:36px;height:36px;border-radius:6px;border:1px solid var(--border);background:#c8522a;flex-shrink:0;cursor:pointer" onclick="document.getElementById('bi-clr-accent').click()"></div>
+            <input type="color" id="bi-clr-accent" value="#c8522a" style="display:none" oninput="document.getElementById('bi-logo-accent').value=this.value;document.getElementById('bi-logo-swatch-accent').style.background=this.value">
+            <input type="text" id="bi-logo-accent" placeholder="#c8522a" style="font-family:var(--mono);font-size:0.85rem;flex:1" oninput="biSyncSwatch('accent',this.value)">
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-top:0.5rem">
+        <button class="btn btn-primary" id="bi-btn" onclick="genBrandIdentity()">◈ Generate Identity System</button>
+        <button class="btn btn-outline" onclick="biRefreshFromState()" style="font-size:0.82rem;padding:0.55rem 1rem">↺ Re-sync from generators</button>
+        <span style="font-family:var(--mono);font-size:0.65rem;color:var(--ink-dim)">~12–18 sec · 2-pass AI · complete brand kit</span>
+      </div>
+
+      <div class="loading-row" id="l-bi">
+        <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        <span id="bi-loading-msg">Analyzing brand personality...</span>
+      </div>
+
+      <!-- ── Error state ───────────────────────────────────────────────── -->
+      <div id="bi-error" style="display:none;background:rgba(200,82,42,0.07);border:1px solid rgba(200,82,42,0.25);border-radius:8px;padding:1rem 1.25rem;margin-top:1rem">
+        <div style="font-family:var(--mono);font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--rust);margin-bottom:0.35rem">⚠ Generation Error</div>
+        <div id="bi-error-msg" style="font-size:0.85rem;color:var(--ink-mid)"></div>
+        <div style="font-size:0.78rem;color:var(--ink-dim);margin-top:0.35rem">Make sure Brand Name and at least a short Brand Story are filled in, then try again.</div>
+      </div>
+
+      <!-- ── RESULT ────────────────────────────────────────────────────── -->
+      <div class="result-card" id="r-bi" style="padding:0;overflow:hidden;margin-top:1.75rem">
+
+        <!-- Kit header -->
+        <div id="bi-kit-header" style="padding:1.5rem 1.75rem 1rem;border-bottom:1px solid var(--border)">
+          <div style="font-family:var(--mono);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-dim);margin-bottom:0.35rem">Brand Identity System</div>
+          <div id="bi-kit-brand-name" style="font-family:var(--serif);font-size:1.6rem;color:var(--ink)"></div>
+          <div id="bi-kit-archetype-pill" style="display:inline-flex;align-items:center;gap:0.4rem;margin-top:0.4rem;font-family:var(--mono);font-size:0.62rem;padding:4px 12px;border-radius:20px;background:var(--warm);border:1px solid var(--border);color:var(--ink-mid)"></div>
+        </div>
+
+        <!-- Tab navigation -->
+        <div style="display:flex;border-bottom:1px solid var(--border);background:var(--paper);overflow-x:auto">
+          <button class="bi-tab active" onclick="biTab('personality',this)">Personality</button>
+          <button class="bi-tab" onclick="biTab('palette',this)">Palette</button>
+          <button class="bi-tab" onclick="biTab('typography',this)">Typography</button>
+          <button class="bi-tab" onclick="biTab('voice',this)">Brand Voice</button>
+          <button class="bi-tab" onclick="biTab('logo',this)">Logo Rules</button>
+          <button class="bi-tab" onclick="biTab('visual',this)">Visual Style</button>
+          <button class="bi-tab" onclick="biTab('dos',this)">Do's &amp; Don'ts</button>
+        </div>
+
+        <!-- Tab panes -->
+        <div style="padding:1.75rem">
+          <div class="bi-pane active" id="bi-pane-personality"><div id="bi-personality-content"></div></div>
+          <div class="bi-pane" id="bi-pane-palette"><div id="bi-palette-content"></div></div>
+          <div class="bi-pane" id="bi-pane-typography"><div id="bi-typography-content"></div></div>
+          <div class="bi-pane" id="bi-pane-voice"><div id="bi-voice-content"></div></div>
+          <div class="bi-pane" id="bi-pane-logo"><div id="bi-logo-content"></div></div>
+          <div class="bi-pane" id="bi-pane-visual"><div id="bi-visual-content"></div></div>
+          <div class="bi-pane" id="bi-pane-dos"><div id="bi-dos-content"></div></div>
+        </div>
+
+        <!-- Export bar -->
+        <div style="border-top:1px solid var(--border);padding:1rem 1.75rem;background:var(--warm);display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap">
+          <span style="font-family:var(--mono);font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-dim)">Export</span>
+          <button class="btn btn-outline" onclick="biCopyAll()" style="font-size:0.8rem;padding:0.5rem 1rem">⎘ Copy Full Kit</button>
+          <button class="btn btn-outline" onclick="biDownloadJSON()" style="font-size:0.8rem;padding:0.5rem 1rem">⬇ JSON</button>
+          <button class="btn btn-outline" onclick="biDownloadMarkdown()" style="font-size:0.8rem;padding:0.5rem 1rem">⬇ Markdown</button>
+        </div>
+      </div>
+    </div>
+
+
   </main>
 </div>
 
@@ -2130,6 +2697,27 @@ select {
 
 const API = '';
 let chatHistory = [];
+
+// ── BRAND STATE — collects outputs from all generators ───────────────────
+const BRAND_STATE = {
+  brand_name:    '',
+  industry:      '',
+  tagline:       '',
+  brand_story:   '',
+  mission:       '',
+  vision:        '',
+  values:        [],
+  brand_promise: '',
+  audience:      '',
+  logo_primary:  '',
+  logo_accent:   '',
+  logo_bg:       '',
+  logo_svg:      '',
+  names_generated: [],
+  taglines_generated: [],
+};
+function bsGet(key) { return BRAND_STATE[key] || ''; }
+function bsSet(updates) { Object.assign(BRAND_STATE, updates); }
 
 // ── INIT ───────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
@@ -2185,6 +2773,14 @@ async function genBrandNames() {
       </div>
     `).join('');
     show('bn');
+    // capture state
+    const firstN = (data.brand_names||[])[0];
+    bsSet({
+      brand_name: document.getElementById('bn-industry').value ? bsGet('brand_name') : (firstN ? firstN.name : bsGet('brand_name')),
+      industry: document.getElementById('bn-industry').value,
+      names_generated: (data.brand_names||[]).map(n=>n.name),
+    });
+    refreshBrandIdentityBadge();
   } catch(e) { alert('Backend error: ' + e.message); }
   finally { load('bn', false); btn.disabled = false; }
 }
@@ -2210,6 +2806,13 @@ async function genTaglines() {
       </div>
     `).join('');
     show('tl');
+    bsSet({
+      brand_name: document.getElementById('tl-brand').value || bsGet('brand_name'),
+      industry:   document.getElementById('tl-industry').value || bsGet('industry'),
+      tagline:    (data.taglines&&data.taglines[0]) ? data.taglines[0].tagline : bsGet('tagline'),
+      taglines_generated: (data.taglines||[]).map(t=>t.tagline),
+    });
+    refreshBrandIdentityBadge();
   } catch(e) { alert('Error: ' + e.message); }
   finally { load('tl', false); }
 }
@@ -2776,6 +3379,17 @@ async function genBrandStory() {
       </div>
     `;
     show('bs');
+    bsSet({
+      brand_name:    document.getElementById('bs-brand').value    || bsGet('brand_name'),
+      industry:      document.getElementById('bs-industry').value  || bsGet('industry'),
+      audience:      document.getElementById('bs-audience').value  || bsGet('audience'),
+      brand_story:   data.origin_story     || bsGet('brand_story'),
+      mission:       data.mission_statement|| bsGet('mission'),
+      vision:        data.vision           || bsGet('vision'),
+      values:        data.values           || bsGet('values'),
+      brand_promise: data.brand_promise    || bsGet('brand_promise'),
+    });
+    refreshBrandIdentityBadge();
   } catch(e) { alert('Error: ' + e.message); }
   finally { load('bs', false); }
 }
@@ -2939,28 +3553,32 @@ async function sendMsg() {
   btn.disabled = true;
 
   const tid = 'typing-' + Date.now();
-  addMsg('ai', '<em style="color:var(--ink-dim)">Thinking...</em>', tid);
+  addMsg('ai', '<em style="color:var(--ink-dim)">Thinking...</em>', tid, null);
 
   try {
     const data = await api('/api/chat', { message: msg, history: chatHistory });
     document.getElementById(tid)?.remove();
     chatHistory.push({ role: 'assistant', content: data.response });
-    addMsg('ai', data.response.replace(/\n/g, '<br>'));
+    const modelTag = data.model ? data.model.replace('groq/','Groq · ').replace('nvidia/','NVIDIA · ') : '';
+    addMsg('ai', data.response.replace(/\n/g, '<br>'), null, modelTag);
   } catch(e) {
     document.getElementById(tid)?.remove();
     addMsg('ai', '⚠️ Could not reach backend. Make sure <code>uvicorn main:app</code> is running on port 8000.');
   } finally { btn.disabled = false; }
 }
 
-function addMsg(role, html, id) {
+function addMsg(role, html, id, modelLabel) {
   const msgs = document.getElementById('chat-msgs');
   const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
   const div  = document.createElement('div');
   div.className = 'msg ' + role;
   if (id) div.id = id;
+  const modelTag = (role === 'ai' && modelLabel)
+    ? `<span style="font-family:var(--mono);font-size:0.52rem;color:#76b900;margin-left:0.4rem;opacity:0.8">${modelLabel}</span>`
+    : '';
   div.innerHTML = `
     <div class="msg-bubble">${html}</div>
-    <div class="msg-time">${role==='user' ? 'You' : 'BrandCraft AI'} · ${time}</div>
+    <div class="msg-time">${role==='user' ? 'You' : 'BrandCraft AI'} · ${time}${modelTag}</div>
   `;
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
@@ -3235,4 +3853,470 @@ async function genPitchDeck() { await previewPalette(); }
 
 </script>
 </body>
-</html>
+</html><!-- BRAND IDENTITY JS -->
+<script>
+// ── BRAND IDENTITY SYSTEM ─────────────────────────────────────────────────
+
+let _biData = {};
+
+// ── Swatch sync helper
+function biSyncSwatch(role, val) {
+  const v = val.replace('#','').trim();
+  if (v.length === 6) {
+    document.getElementById('bi-logo-swatch-' + role).style.background = '#' + v;
+    document.getElementById('bi-clr-' + role).value = '#' + v;
+  }
+}
+
+// ── Badge on nav link
+function refreshBrandIdentityBadge() {
+  const badge = document.getElementById('bi-badge');
+  if (!badge) return;
+  const filled = ['brand_name','tagline','brand_story','industry'].filter(k => bsGet(k)).length;
+  if (filled >= 1) badge.style.display = 'inline';
+  badge.textContent = filled >= 3 ? 'READY' : filled + '/4';
+  badge.style.background = filled >= 3 ? 'var(--sage)' : 'var(--rust)';
+}
+
+// ── Auto-fill form from BRAND_STATE
+function biRefreshFromState() {
+  const tryFill = (id, key, transform) => {
+    const v = bsGet(key);
+    const el = document.getElementById(id);
+    if (!el) return;
+    let val = Array.isArray(v) ? v.join(', ') : (v || '');
+    if (transform) val = transform(val);
+    if (val) el.value = val;
+  };
+  tryFill('bi-brand',    'brand_name');
+  tryFill('bi-industry', 'industry');
+  tryFill('bi-tagline',  'tagline');
+  tryFill('bi-story',    'brand_story');
+  tryFill('bi-audience', 'audience');
+  tryFill('bi-values',   'values');
+
+  // Logo colors from Logo Studio
+  const lp = bsGet('logo_primary');
+  const la = bsGet('logo_accent');
+  if (lp) {
+    document.getElementById('bi-logo-primary').value = lp;
+    document.getElementById('bi-logo-swatch-primary').style.background = lp;
+    document.getElementById('bi-clr-primary').value = lp.startsWith('#') ? lp : '#'+lp;
+  }
+  if (la) {
+    document.getElementById('bi-logo-accent').value = la;
+    document.getElementById('bi-logo-swatch-accent').style.background = la;
+    document.getElementById('bi-clr-accent').value = la.startsWith('#') ? la : '#'+la;
+  }
+
+  // Show detected chips
+  const detected = document.getElementById('bi-detected-fields');
+  if (detected) {
+    const chips = [
+      { key:'brand_name',   label:'Brand Name',    icon:'✦' },
+      { key:'tagline',      label:'Tagline',        icon:'◈' },
+      { key:'brand_story',  label:'Brand Story',    icon:'◎' },
+      { key:'industry',     label:'Industry',       icon:'▨' },
+      { key:'audience',     label:'Audience',       icon:'◆' },
+      { key:'logo_primary', label:'Logo Colors',    icon:'◉' },
+    ];
+    const html = chips.map(c => {
+      const has = !!(bsGet(c.key));
+      return `<span class="bi-detected-chip ${has ? 'has-data' : 'no-data'}" title="${has ? 'Detected from generator' : 'Not yet generated'}">${c.icon} ${c.label}</span>`;
+    }).join('');
+    detected.innerHTML = html ||
+      '<span style="font-family:var(--mono);font-size:0.65rem;color:var(--ink-dim)">Generate brand assets first — they&#8217;ll auto-fill here.</span>';
+  }
+  refreshBrandIdentityBadge();
+}
+
+// ── Hook into nav — use DOMContentLoaded-safe approach
+document.addEventListener('DOMContentLoaded', () => {
+  // Wrap the nav link click directly instead of overriding go()
+  const navEl = document.getElementById('nav-brand-identity');
+  if (navEl) {
+    const origOnclick = navEl.getAttribute('onclick');
+    navEl.addEventListener('click', () => {
+      // Delay slightly so go() panel switch runs first
+      setTimeout(biRefreshFromState, 60);
+    });
+  }
+});
+
+// ── Main generation function
+async function genBrandIdentity() {
+  const brand = (document.getElementById('bi-brand').value || bsGet('brand_name') || '').trim();
+  if (!brand) {
+    document.getElementById('bi-error').style.display = 'block';
+    document.getElementById('bi-error-msg').textContent = 'Brand Name is required. Fill it in above or generate a Brand Name first.';
+    return;
+  }
+
+  const btn = document.getElementById('bi-btn');
+  const msg = document.getElementById('bi-loading-msg');
+  document.getElementById('bi-error').style.display = 'none';
+  btn.disabled = true;
+  document.getElementById('l-bi').classList.add('show');
+
+  const steps = [
+    'Analyzing brand personality and archetype...',
+    'Building colour palette and extended swatches...',
+    'Designing typography system...',
+    'Writing brand voice guidelines...',
+    'Compiling logo rules and visual style...',
+    'Finalising dos and don\u2019ts...',
+  ];
+  let si = 0;
+  const iv = setInterval(() => { si = (si + 1) % steps.length; msg.textContent = steps[si]; }, 2800);
+
+  try {
+    const payload = {
+      brand_name:      brand,
+      tagline:         document.getElementById('bi-tagline').value  || bsGet('tagline'),
+      brand_story:     document.getElementById('bi-story').value    || bsGet('brand_story'),
+      industry:        document.getElementById('bi-industry').value || bsGet('industry'),
+      target_audience: document.getElementById('bi-audience').value || bsGet('audience'),
+      values:          document.getElementById('bi-values').value   ||
+                       (Array.isArray(bsGet('values')) ? bsGet('values').join(', ') : bsGet('values')),
+      logo_primary:    document.getElementById('bi-logo-primary').value || bsGet('logo_primary'),
+      logo_accent:     document.getElementById('bi-logo-accent').value  || bsGet('logo_accent'),
+    };
+
+    const data = await api('/api/brand-identity', payload);
+
+    // Validate we got real data back
+    if (!data || (!data.brand_personality && !data.color_palette && !data.typography)) {
+      throw new Error('AI returned an incomplete response. Please try again — this sometimes happens with very short brand descriptions.');
+    }
+
+    _biData = { ...data, brand_name: brand };
+    renderBrandIdentityKit(_biData);
+
+    const result = document.getElementById('r-bi');
+    result.classList.add('show');
+    result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  } catch(e) {
+    document.getElementById('bi-error').style.display = 'block';
+    document.getElementById('bi-error-msg').textContent = e.message || String(e);
+  } finally {
+    clearInterval(iv);
+    document.getElementById('l-bi').classList.remove('show');
+    btn.disabled = false;
+    msg.textContent = steps[0];
+  }
+}
+
+// ── Tab switching
+function biTab(name, el) {
+  document.querySelectorAll('.bi-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.bi-pane').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('bi-pane-' + name).classList.add('active');
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function renderBrandIdentityKit(d) {
+  // Header
+  document.getElementById('bi-kit-brand-name').textContent = d.brand_name || '';
+  const ap = document.getElementById('bi-kit-archetype-pill');
+  if (d.brand_archetype) ap.textContent = d.brand_archetype;
+
+  const traitIcons = ['✦','◎','◈','◉','▲','◆'];
+  const archIcons = {
+    'The Creator':'🎨','The Explorer':'🧭','The Hero':'⚡','The Sage':'📚',
+    'The Innocent':'☀️','The Outlaw':'🔥','The Magician':'✨','The Ruler':'👑',
+    'The Lover':'💎','The Caregiver':'💙','The Jester':'🎭','The Everyman':'🤝',
+  };
+
+  // ── PERSONALITY ─────────────────────────────────────────────────────────
+  const bp = d.brand_personality || {};
+  const traits = bp.personality_traits || [];
+  const archIcon = archIcons[d.brand_archetype] || '◈';
+  document.getElementById('bi-personality-content').innerHTML = `
+    <div class="bi-archetype-banner">
+      <span class="bi-archetype-icon">${archIcon}</span>
+      <div>
+        <div class="bi-archetype-name">${d.brand_archetype || 'Brand Archetype'}</div>
+        <div class="bi-archetype-desc">${bp.archetype_description || ''}</div>
+      </div>
+    </div>
+    ${bp.summary ? `<div class="bi-section"><div class="bi-section-label">Brand Personality</div><p>${bp.summary}</p></div>` : ''}
+    ${traits.length ? `
+    <div class="bi-section">
+      <div class="bi-section-label">Core Personality Traits</div>
+      <div class="bi-trait-grid">
+        ${traits.map((t,i) => `
+          <div class="bi-trait-card">
+            <span class="trait-icon">${traitIcons[i % traitIcons.length]}</span>
+            <div class="trait-name">${t.trait || t}</div>
+            <div class="trait-desc">${t.description || ''}</div>
+          </div>`).join('')}
+      </div>
+    </div>` : ''}
+    ${bp.emotional_positioning ? `<div class="bi-section"><div class="bi-section-label">Emotional Positioning</div><p>${bp.emotional_positioning}</p></div>` : ''}
+    ${bp.brand_promise ? `<div class="bi-section"><div class="bi-section-label">Brand Promise</div><div class="elevator-pitch" style="margin:0">"${bp.brand_promise}"</div></div>` : ''}
+  `;
+
+  // ── PALETTE ─────────────────────────────────────────────────────────────
+  const cp = d.color_palette || {};
+  const cores = cp.core_colors || [];
+  const exts  = cp.extended_palette || [];
+  function textOnBg(hex) {
+    try {
+      const h = (hex||'').replace('#','');
+      const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+      return (r*299 + g*587 + b*114)/1000 > 128 ? '#1a1612' : '#f5f0e8';
+    } catch(e) { return '#1a1612'; }
+  }
+  document.getElementById('bi-palette-content').innerHTML = `
+    ${cores.length ? `
+    <div class="bi-section">
+      <div class="bi-section-label">Core Palette — click any swatch to copy hex</div>
+      <div class="bi-swatch-row">
+        ${cores.map(c => {
+          const tc = textOnBg(c.hex||'#333');
+          return `<div class="bi-swatch" style="background:${c.hex||'#ccc'};color:${tc}"
+            onclick="navigator.clipboard&&navigator.clipboard.writeText('${c.hex||''}').then(()=>{this.style.outline='2px solid '+${JSON.stringify(tc)}})"
+            title="${c.name} — ${c.hex}${c.pantone ? ' / '+c.pantone : ''}">
+            <span class="sw-hex">${c.hex||''}</span>
+            <span class="sw-label">${c.role||c.name||''}</span>
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="font-family:var(--mono);font-size:0.6rem;color:var(--ink-dim);margin-top:0.4rem">
+        ${cores.map(c=>c.pantone?`<span style="margin-right:1rem">${c.name}: ${c.pantone}</span>`:''  ).join('')}
+      </div>
+    </div>` : ''}
+    ${exts.length ? `
+    <div class="bi-section">
+      <div class="bi-section-label">Extended Palette</div>
+      <div class="bi-extended-swatches">
+        ${exts.map(c => `
+          <div class="bi-ext-swatch" onclick="navigator.clipboard&&navigator.clipboard.writeText('${c.hex||''}')" title="Click to copy">
+            <div class="ext-dot" style="background:${c.hex||'#ccc'}"></div>
+            <div><div class="ext-role">${c.name||''}</div><div class="ext-info">${c.hex||''} · ${c.usage||''}</div></div>
+          </div>`).join('')}
+      </div>
+    </div>` : ''}
+    ${cp.color_strategy ? `<div class="bi-section"><div class="bi-section-label">Colour Strategy</div><p>${cp.color_strategy}</p></div>` : ''}
+    ${cp.color_psychology ? `<div class="bi-section"><div class="bi-section-label">Colour Psychology</div><p>${cp.color_psychology}</p></div>` : ''}
+  `;
+
+  // ── TYPOGRAPHY ───────────────────────────────────────────────────────────
+  const ty = d.typography || {};
+  const fonts = ty.fonts || [];
+  document.getElementById('bi-typography-content').innerHTML = `
+    <div class="bi-section">
+      ${fonts.map(f => {
+        const sz = f.role === 'Display' ? '1.5rem' : f.role === 'Heading' ? '1.1rem' : f.role === 'Body' ? '0.9rem' : '0.75rem';
+        return `<div class="bi-font-card">
+          <div class="fc-role">${f.role}</div>
+          <div class="fc-name">${f.font_family}</div>
+          <div class="fc-sample" style="font-size:${sz};line-height:${f.line_height||1.5}">${f.sample_text || 'The quick brown fox'}</div>
+          <div class="fc-specs">
+            ${f.sizes     ? `<span>Sizes: ${f.sizes}</span>` : ''}
+            ${f.weight    ? `<span>Weight: ${f.weight}</span>` : ''}
+            ${f.line_height ? `<span>Line-height: ${f.line_height}</span>` : ''}
+            ${f.letter_spacing ? `<span>Tracking: ${f.letter_spacing}</span>` : ''}
+          </div>
+          ${f.usage_notes ? `<div style="font-size:0.8rem;color:var(--ink-dim);margin-top:0.4rem;border-top:1px solid var(--border);padding-top:0.4rem">${f.usage_notes}</div>` : ''}
+        </div>`;
+      }).join('')}
+    </div>
+    ${ty.hierarchy_rules ? `<div class="bi-section"><div class="bi-section-label">Hierarchy Rules</div><p>${ty.hierarchy_rules}</p></div>` : ''}
+    ${ty.fallback_stack  ? `<div class="bi-section"><div class="bi-section-label">CSS Fallback Stack</div><p style="font-family:var(--mono);font-size:0.82rem">${ty.fallback_stack}</p></div>` : ''}
+  `;
+
+  // ── BRAND VOICE ──────────────────────────────────────────────────────────
+  const bv = d.brand_voice || {};
+  const tones = bv.tone_attributes || [];
+  const pairs = bv.voice_pairs || [];
+  document.getElementById('bi-voice-content').innerHTML = `
+    ${bv.summary ? `<div class="bi-section"><div class="bi-section-label">Voice Summary</div><p>${bv.summary}</p></div>` : ''}
+    ${tones.length ? `
+    <div class="bi-section">
+      <div class="bi-section-label">Tone Attributes</div>
+      <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.4rem">
+        ${tones.map(t => `<span class="value-pill" style="border:1px solid var(--border)">${t}</span>`).join('')}
+      </div>
+    </div>` : ''}
+    ${pairs.length ? `
+    <div class="bi-section">
+      <div class="bi-section-label">Voice Is / Voice Is Not</div>
+      ${pairs.map(p => `
+        <div class="bi-voice-pair">
+          <div class="bi-voice-is"><div class="vv-label">✓ We Are</div><p>${p.is}</p></div>
+          <div class="bi-voice-not"><div class="vv-label">✕ We Are Not</div><p>${p.is_not}</p></div>
+        </div>`).join('')}
+    </div>` : ''}
+    ${bv.writing_guidelines ? `<div class="bi-section"><div class="bi-section-label">Writing Style Guidelines</div><p>${bv.writing_guidelines}</p></div>` : ''}
+    ${bv.sample_copy ? `
+    <div class="bi-section">
+      <div class="bi-section-label">Sample Brand Copy</div>
+      <div class="tagline-card" style="margin:0"><div class="tagline-quote">"${bv.sample_copy}"</div></div>
+    </div>` : ''}
+  `;
+
+  // ── LOGO RULES ───────────────────────────────────────────────────────────
+  const lg = d.logo_guidelines || {};
+  const rules = lg.rules || [];
+  document.getElementById('bi-logo-content').innerHTML = `
+    ${lg.overview ? `<div class="bi-section"><div class="bi-section-label">Logo Overview</div><p>${lg.overview}</p></div>` : ''}
+    ${rules.length ? `
+    <div class="bi-section">
+      <div class="bi-section-label">Usage Rules</div>
+      ${rules.map(r => `
+        <div class="bi-rule-card">
+          <span class="bi-rule-icon">${r.type === 'do' ? '✓' : '⚠'}</span>
+          <div>
+            <div class="rule-title" style="color:${r.type==='do'?'var(--sage)':'var(--rust)'}">${r.title}</div>
+            <p>${r.description}</p>
+          </div>
+        </div>`).join('')}
+    </div>` : ''}
+    ${lg.clear_space    ? `<div class="bi-section"><div class="bi-section-label">Clear Space</div><p>${lg.clear_space}</p></div>` : ''}
+    ${lg.minimum_size   ? `<div class="bi-section"><div class="bi-section-label">Minimum Size</div><p>${lg.minimum_size}</p></div>` : ''}
+    ${lg.background_usage ? `<div class="bi-section"><div class="bi-section-label">Background Usage</div><p>${lg.background_usage}</p></div>` : ''}
+  `;
+
+  // ── VISUAL STYLE ─────────────────────────────────────────────────────────
+  const vs = d.visual_style || {};
+  const vItems = vs.style_elements || [];
+  document.getElementById('bi-visual-content').innerHTML = `
+    ${vs.overview ? `<div class="bi-section"><div class="bi-section-label">Visual Direction</div><p>${vs.overview}</p></div>` : ''}
+    ${vItems.length ? `
+    <div class="bi-section">
+      <div class="bi-section-label">Style Elements</div>
+      ${vItems.map(v => `<div class="bi-visual-card"><div class="vc-label">${v.element}</div><p>${v.description}</p></div>`).join('')}
+    </div>` : ''}
+    ${vs.photography ? `<div class="bi-section"><div class="bi-section-label">Photography Direction</div><p>${vs.photography}</p></div>` : ''}
+    ${vs.iconography ? `<div class="bi-section"><div class="bi-section-label">Iconography &amp; Illustration</div><p>${vs.iconography}</p></div>` : ''}
+    ${vs.layout      ? `<div class="bi-section"><div class="bi-section-label">Layout Principles</div><p>${vs.layout}</p></div>` : ''}
+  `;
+
+  // ── DO'S AND DON'TS ──────────────────────────────────────────────────────
+  const dd = d.dos_and_donts || {};
+  const dos   = dd.dos   || [];
+  const donts = dd.donts || [];
+  document.getElementById('bi-dos-content').innerHTML = `
+    ${(dos.length || donts.length) ? `
+    <div class="bi-do-dont-grid" style="margin-bottom:1.5rem">
+      <div class="bi-do-card">
+        <div class="dd-header">✓ Always Do</div>
+        <ul>${dos.map(x => `<li>${x}</li>`).join('')}</ul>
+      </div>
+      <div class="bi-dont-card">
+        <div class="dd-header">✕ Never Do</div>
+        <ul>${donts.map(x => `<li>${x}</li>`).join('')}</ul>
+      </div>
+    </div>` : ''}
+    ${dd.critical_rules ? `
+    <div class="bi-section">
+      <div class="bi-section-label">⚑ Critical Brand Rule</div>
+      <div style="background:rgba(200,82,42,0.06);border:1px solid rgba(200,82,42,0.22);border-radius:8px;padding:1rem 1.25rem">
+        <p style="color:var(--ink);font-weight:500">${dd.critical_rules}</p>
+      </div>
+    </div>` : ''}
+  `;
+}
+
+// ── EXPORTS ───────────────────────────────────────────────────────────────
+function biCopyAll() {
+  const text = biToMarkdown(_biData);
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Full brand kit copied to clipboard!');
+  });
+}
+
+function biDownloadJSON() {
+  const blob = new Blob([JSON.stringify(_biData, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (_biData.brand_name||'brand').replace(/\s+/g,'-').toLowerCase() + '-identity-kit.json';
+  a.click();
+}
+
+function biDownloadMarkdown() {
+  const blob = new Blob([biToMarkdown(_biData)], { type: 'text/markdown' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (_biData.brand_name||'brand').replace(/\s+/g,'-').toLowerCase() + '-brand-identity.md';
+  a.click();
+}
+
+function biToMarkdown(d) {
+  if (!d || !d.brand_name) return 'No identity kit generated yet.';
+  const bp = d.brand_personality||{}, cp = d.color_palette||{}, ty = d.typography||{};
+  const bv = d.brand_voice||{}, lg = d.logo_guidelines||{}, vs = d.visual_style||{}, dd = d.dos_and_donts||{};
+  return [
+`# ${d.brand_name} — Brand Identity System`,
+``,
+`## Brand Archetype: ${d.brand_archetype||''}`,
+bp.archetype_description||'',
+``,
+`## Brand Personality`,
+bp.summary||'',
+``,
+`### Traits`,
+(bp.personality_traits||[]).map(t=>`- **${t.trait||t}**: ${t.description||''}`).join('\n'),
+``,
+`**Emotional Positioning:** ${bp.emotional_positioning||''}`,
+`**Brand Promise:** "${bp.brand_promise||''}"`,
+``,
+`---`,
+`## Colour Palette`,
+`### Core`,
+(cp.core_colors||[]).map(c=>`- **${c.name}** \`${c.hex}\` — ${c.role||''}${c.pantone?' / '+c.pantone:''}`).join('\n'),
+`### Extended`,
+(cp.extended_palette||[]).map(c=>`- **${c.name}** \`${c.hex}\` — ${c.usage||''}`).join('\n'),
+cp.color_strategy||'',
+``,
+`---`,
+`## Typography`,
+(ty.fonts||[]).map(f=>`### ${f.role}: ${f.font_family}
+Sizes: ${f.sizes||''}  |  Weight: ${f.weight||''}  |  Line-height: ${f.line_height||''}
+"${f.sample_text||''}"
+${f.usage_notes||''}`).join('\n'),
+``,
+ty.hierarchy_rules||'',
+`Fallbacks: \`${ty.fallback_stack||''}\``,
+``,
+`---`,
+`## Brand Voice`,
+bv.summary||'',
+`**Tone:** ${(bv.tone_attributes||[]).join(', ')}`,
+``,
+(bv.voice_pairs||[]).map(p=>`- ✓ ${p.is}  ✕ Not: ${p.is_not}`).join('\n'),
+``,
+bv.writing_guidelines||'',
+`Sample: "${bv.sample_copy||''}"`,
+``,
+`---`,
+`## Logo Guidelines`,
+lg.overview||'',
+(lg.rules||[]).map(r=>`- ${r.type==='do'?'✓':'⚠'} **${r.title}**: ${r.description}`).join('\n'),
+`Clear space: ${lg.clear_space||''}`,
+`Min size: ${lg.minimum_size||''}`,
+``,
+`---`,
+`## Visual Style`,
+vs.overview||'',
+(vs.style_elements||[]).map(v=>`**${v.element}:** ${v.description}`).join('\n'),
+`Photography: ${vs.photography||''}`,
+`Iconography: ${vs.iconography||''}`,
+``,
+`---`,
+`## Do's & Don'ts`,
+`### ✓ Always Do`,
+(dd.dos||[]).map(x=>`- ${x}`).join('\n'),
+`### ✕ Never Do`,
+(dd.donts||[]).map(x=>`- ${x}`).join('\n'),
+dd.critical_rules ? `
+**Critical Rule:** ${dd.critical_rules}` : '',
+``,
+`---`,
+`*Generated by BrandCraft AI*`,
+  ].join('\n');
+}
+</script>
